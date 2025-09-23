@@ -5,6 +5,7 @@
 # ids_x, ids_y, ids_z
 # t_dif, t_htr 
 
+import os
 import sys
 import time
 import csv
@@ -17,16 +18,23 @@ from serial.serialutil import SEVENBITS, EIGHTBITS, PARITY_ODD, PARITY_NONE, STO
 from mag_read import MagSensor
 import IDS
 
-
-DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
+    
 IDS_IP = "172.16.1.198"
 DIFCS_IP = "172.16.2.61"
 DIFCS_PORT = 8234
 ANIM_INTER = 500
 DATA_LIMIT = 300
-SER_MAG = 'COM6'
-SER_DIF = 'COM5'
-SER_HTR = 'COM9'
+
+if os.name == "posix":
+    DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
+    SER_MAG = "/dev/tty.usbserial-B001A17V"
+    SER_DIF = "/dev/tty.usbserial-A506NMAT"
+    SER_HTR = "/dev/tty.usbserial-14540"
+else: 
+    DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
+    SER_MAG = 'COM6'
+    SER_DIF = 'COM5'
+    SER_HTR = 'COM9'
 
 DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 
