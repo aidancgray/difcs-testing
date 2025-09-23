@@ -10,7 +10,8 @@ from serial.serialutil import SEVENBITS, EIGHTBITS, PARITY_ODD, PARITY_NONE, STO
 import IDS
 
 
-DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/mag-sensor/"
+# DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/mag-sensor/"
+DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
 IDS_IP = "172.16.1.198"
 ANIM_INTER = 500
 DATA_LIMIT = 30

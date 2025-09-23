@@ -1,79 +1,115 @@
 import serial
+import socket
 from math import pi, atan, atan2
 from serial.serialutil import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 
-SER_MAG = '/dev/tty.usbmodem586D0017611'
+SER_MAG = 'COM3'
+TCP_MAG_HOST = '172.16.2.61'
+TCP_MAG_PORT = 8234
 MAX_LIST_LEN = 30
 
 class MagSensor():
-    def __init__(self, serial, pole_pitch):
-        self.serial = serial            # serial obj
-        self.pole_pitch = pole_pitch    # mm
-        
-        self.n_poles = 0                # int
-                                        #   sin, cos, n_poles, x_pos
-        self.rdgs = []                  # [(int, int, int,     float)...]
-        self.start_p0 = None            #  (int, int, int,     float)
-        
-        self.start_pos()
-
-    def start_pos(self):
-        sin, s_gain, cos, c_gain = self.get_counts()
-        # x = (self.pole_pitch/pi)/2 * atan2(-1*float(sin), float(cos))
-        self.start_p0 = (sin, s_gain, cos, c_gain)
-        self.rdgs.append(self.start_p0)
-
-    def get_sensor_data(self):
-        self.serial.reset_input_buffer()
-        resp = self.serial.readline()
-        msg = resp.decode()
-
-        if msg[0] == "y":
-            msg_list = msg.split(',')
-            if len(msg_list) != 4:
-                return None
-            else:
-                sin, s_gain, cos, c_gain = msg_list
-                sin = sin.split('= ')[1]
-                s_gain = s_gain.split('= ')[1]
-                cos = cos.split('= ')[1]
-                c_gain = c_gain.split('= ')[1]
-                return [sin, s_gain, cos, c_gain]
+    def __init__(self, conn, pole_pitch, mode='passive'):
+        if len(conn) == 2:
+            self.tcp_mag_host, self.tcp_mag_port = conn
+            self.sock, self.strm_rdr = self.tcp_connect()
+            self.serial_id, self.serial = None, None
         else:
-            return None
+            self.serial_id = conn
+            self.serial = self.serial_connect()
+            self.tcp_mag_host, self.tcp_mag_port, self.sock, self.strm_rdr = None, None, None, None
+
+        self.pole_pitch = pole_pitch    # mm
+        self.mode = mode                # active / passive
+
+    def tcp_connect(self):
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.connect((self.tcp_mag_host, self.tcp_mag_port))
+        strm_rdr = socket.SocketIO(s,'r')
+        return s, strm_rdr
     
+    def tcp_close(self):
+        self.sock.close()
+
+    def serial_connect(self):
+        ser_mag = serial.Serial(port=self.serial_id, 
+                                baudrate=128000, 
+                                timeout=1, 
+                                bytesize=EIGHTBITS,
+                                parity=PARITY_NONE,
+                                stopbits=STOPBITS_ONE)
+        ser_mag.reset_input_buffer()
+        return ser_mag
+    
+    def serial_send(self, msg):
+        self.serial.write(msg.encode('utf-8'))
+        rcv = '\0'
+        while rcv[0] != "$":
+            rcv = self.serial.readline().decode()
+        rcv_list = rcv.split(',')
+        return rcv_list
+
+    def set_op(self, output, channel):
+        msg = f'~D0,sManOP,{channel},{output}\n'
+        resp = self.serial_send(msg)
+        return resp
+
+    def set_sp(self, setpoint, channel):
+        msg = f'~D0,sSP,{channel},{setpoint}\n'
+        resp = self.serial_send(msg)
+        return resp
+
+    def get_PID(self, channel,value):
+        msg = f'~D0,gPID,{channel},{value}\n'
+        resp = self.serial_send(msg)
+        return resp
+
     def get_counts(self):
-        rdout = self.get_sensor_data()
-        while not rdout:
-            rdout = self.get_sensor_data()
-        return int(rdout[0]), int(rdout[1]), int(rdout[2]), int(rdout[3])
+        data = [[None,None],[None,None]]
+
+        while None in data[0] or None in data[1]:
+            if self.serial:
+                msg = self.serial.readline().decode()
+            else:
+                msg = ' '
+                while msg[0] != 'D':
+                    msg = self.strm_rdr.readline().decode('utf-8')
+                
+            msg_list = msg.split(',')
+
+            if len(msg_list) == 5:
+                difcs_id, channel, sin, cos, status = msg_list
+                if channel == '1':
+                    data[0][0] = int(sin)
+                    data[0][1] = int(cos)
+                elif channel == '2':
+                    data[1][0] = int(sin)
+                    data[1][1] = int(cos)
+                
+        return data
     
-    # def pole_check(self, sin, cos):
-    #     if ( cos < 0 ):
-    #         if ( sin > 0 ) and ( self.rdgs[-1][0] < 0):
-    #             self.n_poles+=1
-    #         elif ( sin < 0 ) and ( self.rdgs[-1][0] > 0):
-    #             self.n_poles-=1
+    def get_real_position(self):
+        data = [None,None]
 
-    def get_tru_position(self):
-        sin, s_gain, cos, c_gain = self.get_counts()
-        
-        # self.pole_check(sin, cos)
-        # x = (self.pole_pitch/pi)/2 * atan2(-1*float(sin), float(cos))
-        # x_pos = self.pole_pitch * self.n_poles + x 
-        # rdg_n = (sin, cos, self.n_poles, -x_pos)
-        
-        rdg_n = (sin, s_gain, cos, c_gain)
-        self.rdgs.append(rdg_n)
-        self.rdgs[-MAX_LIST_LEN:]
-        return rdg_n
+        while None in data:
+            if self.serial:
+                msg = self.serial.readline().decode()
+            else:
+                msg = ' '
+                while msg[0] != 'D':
+                    msg = self.strm_rdr.readline().decode('utf-8')
+            
+            msg_list = msg.split(',')
 
-    def test(self):
-        sin, s_gain, cos, c_gain = self.get_counts()
-        # x = (self.pole_pitch/pi)/2 * atan2(-1*float(sin), 1*float(cos))
-        rdg_n = (sin, s_gain, cos, c_gain)
-        return rdg_n
+            if len(msg_list) == 4:
+                difcs_id, channel, pos, status = msg_list
+                if channel == '1':
+                    data[0] = float(pos)
+                elif channel == '2':
+                    data[1] = float(pos)
+                
+        return data
 
 if __name__ == "__main__":
     ser_mag = serial.Serial(port=SER_MAG, 
@@ -83,10 +119,12 @@ if __name__ == "__main__":
                             parity=PARITY_NONE,
                             stopbits=STOPBITS_ONE)
     ser_mag.reset_input_buffer()
+    
+    mag = MagSensor(ser_mag, 1, 'passive')
 
-    mag = MagSensor(ser_mag, 1)
+    count_data = mag.get_counts()
+    print(f'xs={count_data[0][0]}, xc={count_data[0][1]}')
+    print(f'ys={count_data[1][0]}, yc={count_data[1][1]}')
 
-    while True:
-        pos = mag.get_tru_position()
-        # pos = mag.test()
-        print(f'pos={pos}')
+    pos_data = mag.get_real_position()
+    print(f'xpos={pos_data[0]}, ypos={pos_data[1]}')
