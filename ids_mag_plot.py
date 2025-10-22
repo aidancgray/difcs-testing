@@ -24,6 +24,7 @@ DIFCS_IP = "172.16.2.61"
 DIFCS_PORT = 8234
 ANIM_INTER = 500
 DATA_LIMIT = 300
+NO_COUNTS = True
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -44,11 +45,11 @@ def animate(i, t, t_dif, t_htr, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x,
     temp_dif = get_Lakeshore_temp(ser_dif) if SER_DIF else None
     temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
 
-    counts_data = mag.get_counts()
-    mag_x_sin = counts_data[0][0]
-    mag_x_cos = counts_data[0][1]
-    mag_y_sin = counts_data[1][0]
-    mag_y_cos = counts_data[1][1]
+    counts_data = mag.get_counts() if NO_COUNTS else None
+    mag_x_sin = counts_data[0][0] if NO_COUNTS else 0
+    mag_x_cos = counts_data[0][1] if NO_COUNTS else 0
+    mag_y_sin = counts_data[1][0] if NO_COUNTS else 0
+    mag_y_cos = counts_data[1][1] if NO_COUNTS else 0
 
     pos_data = mag.get_real_position()
     mag_x_pos = pos_data[0] - start_x_pos
@@ -120,7 +121,7 @@ def animate(i, t, t_dif, t_htr, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x,
         return None
 
     else:
-        fig.clear()  # clear
+        fig.clear()
         ax1, ax2 = setup_plots()
 
         # Draw x and y lists
@@ -290,8 +291,10 @@ if __name__ == "__main__":
                                       cache_frame_data=False)
 
         manager = plt.get_current_fig_manager()
-        manager.resize(1280, 720)
-        # plt.ion()
+        if os.name == "posix":
+            manager.full_screen_toggle()
+        else:    
+            manager.resize(1280, 720)
         plt.show()
         plt.pause(.01)
     except KeyboardInterrupt:

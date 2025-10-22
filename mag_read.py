@@ -1,10 +1,16 @@
+import os
+import sys
 import serial
 import socket
 from math import pi, atan, atan2
 from serial.serialutil import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 
-SER_MAG = 'COM3'
+if os.name == "posix":
+    SER_MAG = '/dev/tty.usbserial-B001A17V'
+else:
+    SER_MAG = 'COM3'
+
 TCP_MAG_HOST = '172.16.2.61'
 TCP_MAG_PORT = 8234
 MAX_LIST_LEN = 30
@@ -93,38 +99,36 @@ class MagSensor():
         data = [None,None]
 
         while None in data:
-            if self.serial:
-                msg = self.serial.readline().decode()
-            else:
-                msg = ' '
-                while msg[0] != 'D':
-                    msg = self.strm_rdr.readline().decode('utf-8')
-            
-            msg_list = msg.split(',')
-
-            if len(msg_list) == 4:
-                difcs_id, channel, pos, status = msg_list
-                if channel == '1':
-                    data[0] = float(pos)
-                elif channel == '2':
-                    data[1] = float(pos)
+            try:
+                if self.serial:
+                    msg = self.serial.readline().decode()
+                else:
+                    msg = ' '
+                    while msg[0] != 'D':
+                        msg = self.strm_rdr.readline().decode('utf-8')
+            except UnicodeDecodeError:
+                print('UnicodeDecodeError - Trying again')
+            else:    
+                msg_list = msg.split(',')
+    
+                if len(msg_list) == 4:
+                    difcs_id, channel, pos, status = msg_list
+                    if channel == '1':
+                        data[0] = float(pos)
+                    elif channel == '2':
+                        data[1] = float(pos)
                 
         return data
 
 if __name__ == "__main__":
-    ser_mag = serial.Serial(port=SER_MAG, 
-                            baudrate=128000, 
-                            timeout=1, 
-                            bytesize=EIGHTBITS,
-                            parity=PARITY_NONE,
-                            stopbits=STOPBITS_ONE)
-    ser_mag.reset_input_buffer()
-    
-    mag = MagSensor(ser_mag, 1, 'passive')
+    mag = MagSensor(SER_MAG, 1, 'passive')
 
-    count_data = mag.get_counts()
-    print(f'xs={count_data[0][0]}, xc={count_data[0][1]}')
-    print(f'ys={count_data[1][0]}, yc={count_data[1][1]}')
-
-    pos_data = mag.get_real_position()
-    print(f'xpos={pos_data[0]}, ypos={pos_data[1]}')
+    try:
+        while True:
+            # count_data = mag.get_counts()
+            # print(f'xs={count_data[0][0]}, xc={count_data[0][1]}')
+            # print(f'ys={count_data[1][0]}, yc={count_data[1][1]}')
+            pos_data = mag.get_real_position()
+            print(f'xpos={pos_data[0]}, ypos={pos_data[1]}')
+    except KeyboardInterrupt:
+        sys.exit("\rclosing")

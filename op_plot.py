@@ -24,6 +24,7 @@ DIFCS_IP = "172.16.2.61"
 DIFCS_PORT = 8234
 ANIM_INTER = 50
 DATA_LIMIT = 300
+NO_COUNTS = True
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -44,8 +45,8 @@ DEBUG = None
                 # -5,-10,-15,-10, -5,  0]
 
 OUTPUT_LIST = [  5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
-                75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10,  5,
-                 0, -5,-10,-15,-10, -5,  0]
+                70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10,  5,  0, 
+                -5,-10,-15,-10, -5,  0]
 
 # OUTPUT_LIST = [  5, 10, 15, 10,  5,  0 ]
 CHANNEL = sys.argv[1]
@@ -81,11 +82,11 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
     temp_dif = get_Lakeshore_temp(ser_dif) if SER_DIF else None
     temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
 
-    counts_data = mag.get_counts()
-    mag_x_sin = counts_data[0][0]
-    mag_x_cos = counts_data[0][1]
-    mag_y_sin = counts_data[1][0]
-    mag_y_cos = counts_data[1][1]
+    counts_data = mag.get_counts() if NO_COUNTS else None
+    mag_x_sin = counts_data[0][0] if NO_COUNTS else 0
+    mag_x_cos = counts_data[0][1] if NO_COUNTS else 0
+    mag_y_sin = counts_data[1][0] if NO_COUNTS else 0
+    mag_y_cos = counts_data[1][1] if NO_COUNTS else 0
 
     pos_data = mag.get_real_position()
     mag_x_pos = pos_data[0] - start_x_pos
@@ -149,19 +150,13 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         return None
 
     else:
-        fig.clear()  # clear
+        fig.clear()
         ax1, ax2 = setup_plots()
 
         # Draw x and y lists
         marker_fmt = '.'
         ms_fmt = 5
         lw_fmt = 1
-
-        # l_xs, = ax1.plot(t, x_sin, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        # l_xc, = ax1.plot(t, x_cos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-
-        # l_ys, = ax2.plot(t, y_sin, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        # l_yc, = ax2.plot(t, y_cos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
         
         l_xp, = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
         l_ids_x, = ax2.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
@@ -243,7 +238,7 @@ if __name__ == "__main__":
         op_timer = 0
         op_percent = 0
 
-        dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}.csv"
+        dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_{chn}.csv"
         header = ['time',
                 'output', 
                 'x_sin', 
@@ -270,14 +265,6 @@ if __name__ == "__main__":
                                     bytesize=SEVENBITS,
                                     parity=PARITY_ODD,
                                     stopbits=STOPBITS_ONE)
-            
-        # if SER_MAG:
-        #     ser_mag = serial.Serial(port=SER_MAG, 
-        #                             baudrate=128000, 
-        #                             timeout=1, 
-        #                             bytesize=EIGHTBITS,
-        #                             parity=PARITY_NONE,
-        #                             stopbits=STOPBITS_ONE)
         
         ids = IDS.Device(IDS_IP)
         ids.connect()
@@ -288,7 +275,6 @@ if __name__ == "__main__":
             while not ids.displacement.getMeasurementEnabled():
                 time.sleep(1)
         
-        # ser_mag.reset_input_buffer()
         # mag = MagSensor((DIFCS_IP, DIFCS_PORT), 1, 'passive')
         mag = MagSensor(SER_MAG, 1, 'passive')
 
@@ -308,11 +294,6 @@ if __name__ == "__main__":
         marker_fmt = '.'
         ms_fmt = 10
         lw_fmt = 1
-
-        # l_xs, = ax1.plot(t, x_sin, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        # l_xc, = ax1.plot(t, x_cos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-        # l_ys, = ax2.plot(t, y_sin, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        # l_yc, = ax2.plot(t, y_cos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
 
         l_xp, = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
         l_ids_x, = ax2.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
@@ -338,8 +319,10 @@ if __name__ == "__main__":
                                     cache_frame_data=False)
         
         manager = plt.get_current_fig_manager()
-        manager.resize(1280, 720)
-        # plt.ion()
+        if os.name == "posix":
+            manager.full_screen_toggle()
+        else:    
+            manager.resize(1280, 720)
         plt.show()
         plt.pause(.01)
     except KeyboardInterrupt:
