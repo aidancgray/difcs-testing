@@ -4,9 +4,10 @@ import time
 import serial
 import csv
 import datetime as dt
+from lakeshore import Model336
 from serial.serialutil import SEVENBITS, EIGHTBITS, PARITY_ODD, PARITY_NONE, STOPBITS_ONE
 
-
+### !!! INCOMPLETE !!! ############################################################
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
     SER_MAG = "/dev/tty.usbserial-B001A17V"
