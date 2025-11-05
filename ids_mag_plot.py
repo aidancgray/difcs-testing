@@ -14,8 +14,8 @@ from lakeshore import Model336
 
 
 GET_COUNTS = False
-GET_MAG = False
-GET_IDS = False
+GET_MAG = True
+GET_IDS = True
 
 IDS_IP = "172.16.1.198"
 DIFCS_IP = "172.16.2.61"
@@ -32,7 +32,7 @@ else:
     DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
     SER_MAG = 'COM6'
     SER_DIF = 'COM5'
-    SER_HTR = 'COM9'
+    SER_HTR = 'COM10'
 
 DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 
@@ -53,8 +53,7 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
     mag_y_pos = pos_data[1] - start_y_pos
     
     try:
-        warningNo, pos_1_pm, pos_2_pm, pos_3_pm = ids.displacement.getAbsolutePositions() if GET_IDS else None, 0, 0, 0
-    
+        (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
         pos_1_um = float(pos_1_pm - start_1) / 1000000
         pos_2_um = float(pos_2_pm - start_2) / 1000000
         pos_3_um = float(pos_3_pm - start_3) / 1000000
@@ -295,7 +294,7 @@ if __name__ == "__main__":
     start_t_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
     start_t_a, start_t_b, start_t_c, start_t_d = ls_366.get_all_kelvin_reading()[:4]
     
-    warningNo, start_1, start_2, start_3 = ids.displacement.getAbsolutePositions() if GET_IDS else None, 0, 0, 0
+    (warningNo, start_1, start_2, start_3) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
     start_pos_data = mag.get_real_position() if GET_MAG else (0,0) 
     start_x_pos = start_pos_data[0]
     start_y_pos = start_pos_data[1]
