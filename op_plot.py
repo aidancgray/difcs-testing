@@ -13,10 +13,9 @@ import serial
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from math import floor, pi, atan
 from serial.serialutil import SEVENBITS, EIGHTBITS, PARITY_ODD, PARITY_NONE, STOPBITS_ONE
 from mag_read import MagSensor
-import IDS
+import IDSlib.IDS as IDS
 
 
 IDS_IP = "172.16.1.198"

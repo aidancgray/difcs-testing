@@ -8,8 +8,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from serial.serialutil import SEVENBITS, PARITY_ODD, STOPBITS_ONE
 from mag_read import MagSensor
-
-
 import IDSlib.IDS as IDS
 from lakeshore import Model336
 

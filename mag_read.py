@@ -2,14 +2,13 @@ import os
 import sys
 import serial
 import socket
-from math import pi, atan, atan2
 from serial.serialutil import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 
 
 if os.name == "posix":
     SER_MAG = '/dev/tty.usbserial-B001A17V'
 else:
-    SER_MAG = 'COM3'
+    SER_MAG = 'COM6'
 
 TCP_MAG_HOST = '172.16.2.61'
 TCP_MAG_PORT = 8234
@@ -56,12 +55,27 @@ class MagSensor():
         rcv_list = rcv.split(',')
         return rcv_list
 
-    def set_op(self, output, channel):
+    def ena_PID(self, channel):
+        msg = f'~D0,enaPID,{channel}\n'
+        resp = self.serial_send(msg)
+        return resp
+    
+    def dis_PID(self, channel):
+        msg = f'~D0,disPID,{channel}\n'
+        resp = self.serial_send(msg)
+        return resp
+    
+    def set_op(self, channel, output):
         msg = f'~D0,sManOP,{channel},{output}\n'
         resp = self.serial_send(msg)
         return resp
-
-    def set_sp(self, setpoint, channel):
+    
+    def set_ChMode(self, channel, mode):
+        msg = f'~D0,sChMode,{channel},{mode}\n'
+        resp = self.serial_send(msg)
+        return resp
+    
+    def set_sp(self, channel, setpoint):
         msg = f'~D0,sSP,{channel},{setpoint}\n'
         resp = self.serial_send(msg)
         return resp
@@ -69,8 +83,21 @@ class MagSensor():
     def get_PID(self, channel,value):
         msg = f'~D0,gPID,{channel},{value}\n'
         resp = self.serial_send(msg)
-        return resp
-
+        difcs_id, channel, term, status = resp
+        return float(term)
+    
+    def get_CV(self, channel):
+        msg = f'~D0,gPIDdata,{channel},CV\n'
+        resp = self.serial_send(msg)
+        difcs_id, channel, cv, status = resp
+        return float(cv)
+    
+    def get_IPreal(self, channel):
+        msg = f'~D0,gIPdata,{channel},real\n'
+        resp = self.serial_send(msg)
+        difcs_id, channel, pos, status = resp
+        return float(pos)
+    
     def get_counts(self):
         data = [[None,None],[None,None]]
 
