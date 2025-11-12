@@ -20,7 +20,7 @@ IDS_IP = "172.16.1.198"
 DIFCS_IP = "172.16.2.61"
 DIFCS_PORT = 8234
 ANIM_INTER = 500
-DATA_LIMIT = 300
+DATA_LIMIT = 100
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -123,18 +123,19 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
 
     else:
         fig.clear()
-        ax1, ax2 = setup_plots()
+        # ax1, ax2 = setup_plots()
+        ax1 = setup_plots()
 
         # Draw x and y lists
         marker_fmt = '.'
         ms_fmt = 5
         lw_fmt = 1
 
-        l_t_htr, = ax2.plot(t, t_htr, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-        l_t_a,   = ax2.plot(t, t_a, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
-        l_t_b,   = ax2.plot(t, t_b, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
-        l_t_c,   = ax2.plot(t, t_c, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
+        # l_t_htr, = ax2.plot(t, t_htr, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
+        # l_t_a,   = ax2.plot(t, t_a, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
+        # l_t_b,   = ax2.plot(t, t_b, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
+        # l_t_c,   = ax2.plot(t, t_c, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
+        # l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
 
         l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
         l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
@@ -147,57 +148,82 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         xy_pos_3 = (1.01, 0.20)
         xy_pos_4 = (1.01, -0.05)
         
-        ax1.annotate(f'x_pos: {mag_x_pos}', xy=xy_pos_0, xycoords='axes fraction',
-                     size=10, ha='left', va='top', 
+        ax1.annotate(f'x_pos: {"{0:.3f}".format(mag_x_pos)}', xy=xy_pos_0, xycoords='axes fraction',
+                     size=10, ha='left', va='top', color='red',
                      bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'y_pos: {mag_y_pos}', xy=xy_pos_2, xycoords='axes fraction',
-                     size=10, ha='left', va='top', 
-                     bbox=dict(boxstyle='round', fc='w'))
-        
-        ax1.annotate(f'x_ids: {pos_1_um}', xy=xy_pos_1, xycoords='axes fraction',
-                     size=10, ha='left', va='top', 
-                     bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'y_ids: {pos_2_um}', xy=xy_pos_3, xycoords='axes fraction',
-                     size=10, ha='left', va='top', 
+        ax1.annotate(f'y_pos: {"{0:.3f}".format(mag_y_pos)}', xy=xy_pos_2, xycoords='axes fraction',
+                     size=10, ha='left', va='top', color='blue', 
                      bbox=dict(boxstyle='round', fc='w'))
         
-        ax2.annotate(f't_htr: {temp_htr} K', xy=xy_pos_0, xycoords='axes fraction',
+        ax1.annotate(f'x_ids: {"{0:.3f}".format(pos_1_um)}', xy=xy_pos_1, xycoords='axes fraction',
+                     size=10, ha='left', va='top', color='orange', 
+                     bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f'y_ids: {"{0:.3f}".format(pos_2_um)}', xy=xy_pos_3, xycoords='axes fraction',
+                     size=10, ha='left', va='top', color='green', 
+                     bbox=dict(boxstyle='round', fc='w'))
+        
+        # ax2.annotate(f't_htr: {temp_htr} K', xy=xy_pos_0, xycoords='axes fraction',
+        #              size=10, ha='left', va='top', 
+        #              bbox=dict(boxstyle='round', fc='w'))
+        # ax2.annotate(f't_a: {temp_a} K', xy=xy_pos_1, xycoords='axes fraction',
+        #              size=10, ha='left', va='top', 
+        #              bbox=dict(boxstyle='round', fc='w'))
+        # ax2.annotate(f't_b: {temp_b} K', xy=xy_pos_2, xycoords='axes fraction',
+        #              size=10, ha='left', va='top', 
+        #              bbox=dict(boxstyle='round', fc='w'))
+        # ax2.annotate(f't_c: {temp_c} K', xy=xy_pos_3, xycoords='axes fraction',
+        #              size=10, ha='left', va='top', 
+        #              bbox=dict(boxstyle='round', fc='w'))
+        # ax2.annotate(f't_d: {temp_d} K', xy=xy_pos_4, xycoords='axes fraction',
+        #              size=10, ha='left', va='top', 
+        #              bbox=dict(boxstyle='round', fc='w'))
+        
+        xy_pos_0_2 = (0.45, -0.6)
+        xy_pos_1_2 = (0.45, -0.2)
+        xy_pos_2_2 = (0.45, -0.3)
+        xy_pos_3_2 = (0.45, -0.4)
+        xy_pos_4_2 = (0.45, -0.5)
+        
+        ax1.annotate(f't_e: {"{0:.2f}".format(temp_htr)} K', xy=xy_pos_0_2, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax2.annotate(f't_a: {temp_a} K', xy=xy_pos_1, xycoords='axes fraction',
+        ax1.annotate(f't_a: {"{0:.2f}".format(temp_a)} K', xy=xy_pos_1_2, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax2.annotate(f't_b: {temp_b} K', xy=xy_pos_2, xycoords='axes fraction',
+        ax1.annotate(f't_b: {"{0:.2f}".format(temp_b)} K', xy=xy_pos_2_2, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax2.annotate(f't_c: {temp_c} K', xy=xy_pos_3, xycoords='axes fraction',
+        ax1.annotate(f't_c: {"{0:.2f}".format(temp_c)} K', xy=xy_pos_3_2, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax2.annotate(f't_d: {temp_d} K', xy=xy_pos_4, xycoords='axes fraction',
+        ax1.annotate(f't_d: {"{0:.2f}".format(temp_d)} K', xy=xy_pos_4_2, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
         
         plt.draw()
         append_to_csv(dataFile, data_tmp)
 
-        return l_xp, l_yp, l_ids_x, l_ids_y, l_t_htr, l_t_a, l_t_b, l_t_c, l_t_d
+        return l_xp, l_yp, l_ids_x, l_ids_y, #l_t_htr, l_t_a, l_t_b, l_t_c, l_t_d
 
 def setup_plots():
-    gs = fig.add_gridspec(2, 1, wspace=0, hspace=0.1)
-    ax1 = fig.add_subplot(gs[0, 0])
-    ax2 = fig.add_subplot(gs[1, 0])
+    gs = fig.add_gridspec(3, 1, wspace=0, hspace=0.1)
+    ax1 = fig.add_subplot(gs[:-1, 0])
+    # ax2 = fig.add_subplot(gs[-1, 0])
 
     ax1.grid()
-    ax2.grid()
+    # ax2.grid()
 
-    ax1.set_ylabel(r'pos')
-    ax1.tick_params(labelbottom=False)
+    ax1.set_ylabel(r'pos (um)')
+    ax1.tick_params(axis='x', labelrotation=45)
+    # ax1.tick_params(labelbottom=False)
+    ax1.set_xlabel('Elapsed Time (s)')
     
-    ax2.set_xlabel('Elapsed Time (s)')
-    ax2.set_ylabel(r'temp')
-    ax2.tick_params(axis='x', labelrotation=45)
+    # ax2.set_xlabel('Elapsed Time (s)')
+    # ax2.set_ylabel(r'temp')
+    # ax2.tick_params(axis='x', labelrotation=45)
     
-    return ax1, ax2
+    # return ax1, ax2
+    return ax1 
 
 def append_to_csv(dataFile, data):
     with open(f'{dataFile}', 'a', newline='') as fd:
@@ -263,7 +289,8 @@ if __name__ == "__main__":
 
     # Create figure for plotting
     fig = plt.figure()
-    ax1, ax2 = setup_plots()
+    # ax1, ax2 = setup_plots()
+    ax1 = setup_plots()
 
     t = [] 
     t_htr, t_a, t_b, t_c, t_d = [], [], [], [], [] 
@@ -276,11 +303,11 @@ if __name__ == "__main__":
     ms_fmt = 10
     lw_fmt = 1
 
-    l_t_htr, = ax2.plot(t, t_htr, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-    l_t_a,   = ax2.plot(t, t_a, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
-    l_t_b,   = ax2.plot(t, t_b, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
-    l_t_c,   = ax2.plot(t, t_c, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-    l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
+    # l_t_htr, = ax2.plot(t, t_htr, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
+    # l_t_a,   = ax2.plot(t, t_a, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
+    # l_t_b,   = ax2.plot(t, t_b, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
+    # l_t_c,   = ax2.plot(t, t_c, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
+    # l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
 
     l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
     l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
