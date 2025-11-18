@@ -138,12 +138,45 @@ class MagSensor():
             else:    
                 msg_list = msg.split(',')
     
-                if len(msg_list) == 4:
-                    difcs_id, channel, pos, status = msg_list
+                if len(msg_list) == 3:
+                    difcs_id, channel, pos = msg_list
                     if channel == '1':
                         data[0] = float(pos)
                     elif channel == '2':
                         data[1] = float(pos)
+                
+        return data
+    
+    def get_data_pid_test(self):
+        data = [[None,None],
+                [None,None]]
+
+        while (None in data[0]) or (None in data[1]):
+            try:
+                if self.serial:
+                    msg = self.serial.readline().decode()
+                else:
+                    msg = ' '
+                    while msg[0] != 'D':
+                        msg = self.strm_rdr.readline().decode('utf-8')
+            except UnicodeDecodeError:
+                print('UnicodeDecodeError - Trying again')
+            else:    
+                msg_list = msg.split(',')
+    
+                if len(msg_list) == 3:
+                    difcs_id, channel, pos = msg_list
+                    if channel == '1':
+                        data[0][0] = float(pos)
+                    elif channel == '2':
+                        data[1][0] = float(pos)
+                elif len(msg_list) == 4:
+                    difcs_id, cmd, channel, dacVal = msg_list
+                    if cmd == 'OP':
+                        if channel == '1':
+                            data[0][1] = int(dacVal)
+                        elif channel == '2':
+                            data[1][1] = int(dacVal)
                 
         return data
 
@@ -155,7 +188,11 @@ if __name__ == "__main__":
             # count_data = mag.get_counts()
             # print(f'xs={count_data[0][0]}, xc={count_data[0][1]}')
             # print(f'ys={count_data[1][0]}, yc={count_data[1][1]}')
-            pos_data = mag.get_real_position()
-            print(f'xpos={pos_data[0]}, ypos={pos_data[1]}')
+            #pos_data = mag.get_real_position()
+            #print(f'xpos={pos_data[0]}, ypos={pos_data[1]}')
+            
+            pid_data = mag.get_data_pid_test()
+            print(f'x_pos={pid_data[0][0]}, y_pos={pid_data[1][0]}')
+            print(f'x_dac={pid_data[0][1]}, y_dac={pid_data[1][1]}')
     except KeyboardInterrupt:
         sys.exit("\rclosing")
