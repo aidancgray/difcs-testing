@@ -1,10 +1,3 @@
-# data lists: 
-# time, 
-# x_sin, x_cos, y_sin, y_cos, 
-# x_pos, y_pos, 
-# ids_x, ids_y, ids_z
-# t_dif, t_htr 
-
 import os
 import sys
 import time
@@ -43,14 +36,17 @@ if len(sys.argv) != 2:
     sys.exit('NO CHANNEL SPECIFIED')
 
 CHANNEL = int(sys.argv[1])
-SETPOINT_LIST = [ 0, 5, 10, 20, 40, 60, 40, 20, 10, 5, 0, 1, 2, 3, 2, 1, 0]
-SETPOINT_TIMER = 50
+ #SETPOINT_LIST = [ 0, 5, 10, 20, 40, 60, 40, 20, 10, 5, 0, 1, 2, 3, 2, 1, 0]
+#SETPOINT_LIST = [10, 20, 30, 40, 30, 20, 10, 0]
+#SETPOINT_LIST = [ 1, 2, 3, 2, 1, 0] 
+SETPOINT_LIST = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 90, 80, 70, 60, 50, 40, 30, 20 ,10, 0] 
+SETPOINT_TIMER = 11
 
 def setpoint_increment(channel):
     global sp_incr
     if sp_incr >= len(SETPOINT_LIST):
         sp_incr = 0
-    new_sp = SETPOINT_LIST[sp_incr] + start_pos_data[channel-1]
+    new_sp = SETPOINT_LIST[sp_incr] + start_pos_data[channel-1][0]
     mag.set_sp(channel, new_sp)
     sp_incr+=1
     return new_sp
@@ -83,9 +79,13 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
     mag_y_sin = counts_data[1][0]
     mag_y_cos = counts_data[1][1]
 
-    pos_data = mag.get_real_position()
-    mag_x_pos = pos_data[0] - start_x_pos
-    mag_y_pos = pos_data[1] - start_y_pos
+    #pos_data = mag.get_real_position()
+    pid_data = mag.get_data_pid_test()
+
+    mag_x_pos = pid_data[0][0] - start_x_pos
+    mag_y_pos = pid_data[1][0] - start_y_pos
+    
+    dac = pid_data[chn-1][1]
     
     try:
         warningNo, pos_1_pm, pos_2_pm, pos_3_pm = ids.displacement.getAbsolutePositions()
@@ -99,7 +99,7 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         
         data_tmp = [meas_time,
                     setpoint,
-                    cv, 
+                    dac, 
                     mag_x_sin,
                     mag_x_cos,
                     mag_y_sin,
@@ -167,23 +167,23 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         xy_pos_2 = (1.01, 0.45)
         xy_pos_3 = (1.01, 0.20)
         
-        ax1.annotate(f'x_pos: {mag_x_pos}', xy=xy_pos_0, xycoords='axes fraction',
+        ax1.annotate(f'x_pos: {"{0:.3f}".format(mag_x_pos)}', xy=xy_pos_0, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'y_pos: {mag_y_pos}', xy=xy_pos_1, xycoords='axes fraction',
+        ax1.annotate(f'y_pos: {"{0:.3f}".format(mag_y_pos)}', xy=xy_pos_1, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'sp: {setpoint}', xy=xy_pos_2, xycoords='axes fraction',
+        ax1.annotate(f'sp: {"{0:.3f}".format(setpoint)}', xy=xy_pos_2, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'cv: {cv}%', xy=xy_pos_3, xycoords='axes fraction',
+        ax1.annotate(f'dac: {dac}', xy=xy_pos_3, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
         
-        ax2.annotate(f'x_ids: {pos_1_um}', xy=xy_pos_0, xycoords='axes fraction',
+        ax2.annotate(f'x_ids: {"{0:.3f}".format(pos_1_um)}', xy=xy_pos_0, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax2.annotate(f'y_ids: {pos_2_um}', xy=xy_pos_1, xycoords='axes fraction',
+        ax2.annotate(f'y_ids: {"{0:.3f}".format(pos_2_um)}', xy=xy_pos_1, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
         
@@ -242,7 +242,7 @@ if __name__ == "__main__":
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}.csv"
     header = ['time',
               'setpoint',
-              'cv', 
+              'dac', 
               'x_sin', 
               'x_cos', 
               'y_sin', 
@@ -308,10 +308,10 @@ if __name__ == "__main__":
     start_t_htr = get_Lakeshore_temp(ser_htr) if SER_DIF else None
     
     warningNo, start_1, start_2, start_3 = ids.displacement.getAbsolutePositions()
-    start_pos_data = mag.get_real_position()
-    start_x_pos = start_pos_data[0]
-    start_y_pos = start_pos_data[1]
-    setpoint = start_pos_data[chn-1]
+    start_pos_data = mag.get_data_pid_test()
+    start_x_pos = start_pos_data[0][0]
+    start_y_pos = start_pos_data[1][0]
+    setpoint = start_pos_data[chn-1][0]
     print(f"start position setpoint:{setpoint}")
     mag.set_sp(chn, setpoint)
     mag.set_ChMode(chn, 'MAGSNS')
