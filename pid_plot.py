@@ -16,7 +16,9 @@ DIFCS_IP = "172.16.2.61"
 DIFCS_PORT = 8234
 ANIM_INTER = 50
 DATA_LIMIT = 300
-NO_COUNTS = True
+GET_COUNTS = True
+GET_MAG = True
+GET_OP = True
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -36,20 +38,20 @@ if len(sys.argv) != 2:
     sys.exit('NO CHANNEL SPECIFIED')
 
 CHANNEL = int(sys.argv[1])
- #SETPOINT_LIST = [ 0, 5, 10, 20, 40, 60, 40, 20, 10, 5, 0, 1, 2, 3, 2, 1, 0]
-#SETPOINT_LIST = [10, 20, 30, 40, 30, 20, 10, 0]
-#SETPOINT_LIST = [ 1, 2, 3, 2, 1, 0] 
-SETPOINT_LIST = [10, 20, 30, 40, 50, 60, 70, 80, 90, 100, 90, 80, 70, 60, 50, 40, 30, 20 ,10, 0] 
+SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  110,  100,   90,   80,   70,   60,   50,   40,   30,   20,  10, 0, 
+                 -10, -20, -30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140, -150, -160, -150, -140, -130, -120, -110, -100, -90, -80, -70, -60, -50, -40, -30, -20, -10, 0] 
+# SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  110,  100,  90,  80,  70,  60,  50,  40,  30,  20,  10, 0]
 SETPOINT_TIMER = 11
 
 def setpoint_increment(channel):
     global sp_incr
     if sp_incr >= len(SETPOINT_LIST):
         sp_incr = 0
-    new_sp = SETPOINT_LIST[sp_incr] + start_pos_data[channel-1][0]
+    new_sp_offset = SETPOINT_LIST[sp_incr]    
+    new_sp = new_sp_offset + [start_x_pos, start_y_pos][chn-1]
     mag.set_sp(channel, new_sp)
     sp_incr+=1
-    return new_sp
+    return new_sp_offset
 
 def setpoint_timer(channel):
     global sp_timer
@@ -73,20 +75,30 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
     cv = 0 #mag.get_CV(chn)
 
     # counts_data = mag.get_counts()
-    counts_data = ((0,0),(0,0))
-    mag_x_sin = counts_data[0][0]
-    mag_x_cos = counts_data[0][1]
-    mag_y_sin = counts_data[1][0]
-    mag_y_cos = counts_data[1][1]
+    # counts_data = ((0,0),(0,0))
+    # mag_x_sin = counts_data[0][0]
+    # mag_x_cos = counts_data[0][1]
+    # mag_y_sin = counts_data[1][0]
+    # mag_y_cos = counts_data[1][1]
 
     #pos_data = mag.get_real_position()
-    pid_data = mag.get_data_pid_test()
+    # pid_data = mag.get_data_pid_test()
 
-    mag_x_pos = pid_data[0][0] - start_x_pos
-    mag_y_pos = pid_data[1][0] - start_y_pos
+    # mag_x_pos = pid_data[0][0] - start_x_pos
+    # mag_y_pos = pid_data[1][0] - start_y_pos
     
-    dac = pid_data[chn-1][1]
+    # dac = pid_data[chn-1][1]
     
+    difcs_data = mag.get_difcs_msg(counts=GET_COUNTS, pos=GET_MAG, out=GET_OP)
+    mag_x_sin = difcs_data["x_sin"]
+    mag_x_cos = difcs_data["x_cos"]
+    mag_y_sin = difcs_data["y_sin"]
+    mag_y_cos = difcs_data["y_cos"]
+    mag_x_pos = difcs_data["x_pos"] - start_x_pos
+    mag_y_pos = difcs_data["y_pos"] - start_y_pos
+    dac_x     = difcs_data["x_out"]
+    dac_y     = difcs_data["y_out"]
+
     try:
         warningNo, pos_1_pm, pos_2_pm, pos_3_pm = ids.displacement.getAbsolutePositions()
 
@@ -99,7 +111,8 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         
         data_tmp = [meas_time,
                     setpoint,
-                    dac, 
+                    dac_x,
+                    dac_y, 
                     mag_x_sin,
                     mag_x_cos,
                     mag_y_sin,
@@ -173,10 +186,10 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         ax1.annotate(f'y_pos: {"{0:.3f}".format(mag_y_pos)}', xy=xy_pos_1, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'sp: {"{0:.3f}".format(setpoint)}', xy=xy_pos_2, xycoords='axes fraction',
+        ax1.annotate(f'sp: {"{0:.1f}".format(setpoint)}', xy=xy_pos_2, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'dac: {dac}', xy=xy_pos_3, xycoords='axes fraction',
+        ax1.annotate(f'dacs: {dac_x},\n      {dac_y}', xy=xy_pos_3, xycoords='axes fraction',
                      size=10, ha='left', va='top', 
                      bbox=dict(boxstyle='round', fc='w'))
         
@@ -242,7 +255,8 @@ if __name__ == "__main__":
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}.csv"
     header = ['time',
               'setpoint',
-              'dac', 
+              'dac_x', 
+              'dac_y', 
               'x_sin', 
               'x_cos', 
               'y_sin', 
@@ -308,10 +322,14 @@ if __name__ == "__main__":
     start_t_htr = get_Lakeshore_temp(ser_htr) if SER_DIF else None
     
     warningNo, start_1, start_2, start_3 = ids.displacement.getAbsolutePositions()
-    start_pos_data = mag.get_data_pid_test()
-    start_x_pos = start_pos_data[0][0]
-    start_y_pos = start_pos_data[1][0]
-    setpoint = start_pos_data[chn-1][0]
+    # start_pos_data = mag.get_data_pid_test()
+    # start_x_pos = start_pos_data[0][0]
+    # start_y_pos = start_pos_data[1][0]
+    difcs_msg = mag.get_difcs_msg(pos=True)
+    start_x_pos = difcs_msg["x_pos"]
+    start_y_pos = difcs_msg["y_pos"]
+
+    setpoint = [start_x_pos, start_y_pos][chn-1]
     print(f"start position setpoint:{setpoint}")
     mag.set_sp(chn, setpoint)
     mag.set_ChMode(chn, 'MAGSNS')

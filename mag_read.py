@@ -111,8 +111,8 @@ class MagSensor():
                 
             msg_list = msg.split(',')
 
-            if len(msg_list) == 5:
-                difcs_id, channel, sin, cos, status = msg_list
+            if len(msg_list) == 4:
+                difcs_id, cmd, channel, sin, cos = msg_list
                 if channel == '1':
                     data[0][0] = int(sin)
                     data[0][1] = int(cos)
@@ -139,7 +139,7 @@ class MagSensor():
                 msg_list = msg.split(',')
     
                 if len(msg_list) == 3:
-                    difcs_id, channel, pos = msg_list
+                    difcs_id, cmd, channel, pos = msg_list
                     if channel == '1':
                         data[0] = float(pos)
                     elif channel == '2':
@@ -165,20 +165,64 @@ class MagSensor():
                 msg_list = msg.split(',')
     
                 if len(msg_list) == 3:
-                    difcs_id, channel, pos = msg_list
+                    difcs_id, cmd, channel, pos = msg_list
                     if channel == '1':
                         data[0][0] = float(pos)
                     elif channel == '2':
                         data[1][0] = float(pos)
-                elif len(msg_list) == 4:
-                    difcs_id, cmd, channel, dacVal = msg_list
-                    if cmd == 'OP':
+                elif len(msg_list) == 5:
+                    difcs_id, cmd, channel, sign, dacVal = msg_list
+                    if cmd == 'OUT':
                         if channel == '1':
-                            data[0][1] = int(dacVal)
+                            data[0][1] = int(sign+dacVal)
                         elif channel == '2':
-                            data[1][1] = int(dacVal)
+                            data[1][1] = int(sign+dacVal)
                 
         return data
+    
+    def get_difcs_msg(self, counts=False, pos= False, out=False):
+        data = {}
+        data["x_sin"] = None if counts else 0
+        data["x_cos"] = None if counts else 0
+        data["y_sin"] = None if counts else 0
+        data["y_cos"] = None if counts else 0
+        data["x_pos"] = None if pos else 0
+        data["y_pos"] = None if pos else 0
+        data["x_out"] = None if out else 0
+        data["y_out"] = None if out else 0
+
+        while None in data.values():
+            msg_list = self.serial.readline().decode().split(',')
+            try:
+                if msg_list[1] == 'CNT' and counts:
+                    sin = msg_list[3]
+                    cos = msg_list[4]
+                    if msg_list[2] == '1':
+                        data["x_sin"] = int(sin)
+                        data["x_cos"] = int(cos)
+                    elif msg_list[2] == '2':
+                        data["y_sin"] = int(sin)
+                        data["y_cos"] = int(cos)
+                
+                elif msg_list[1] == 'POS' and pos:
+                    pos = msg_list[3]
+                    if msg_list[2] == '1':
+                        data["x_pos"] = float(pos)
+                    elif msg_list[2] == '2':
+                        data["y_pos"] = float(pos)
+                
+                elif msg_list[1] == 'OUT' and out:
+                    sign   = msg_list[3]
+                    dacVal = msg_list[4]
+                    if msg_list[2] == '1':
+                        data["x_out"] = int(sign+dacVal)
+                    elif msg_list[2] == '2':
+                        data["y_out"] = int(sign+dacVal)
+            except IndexError:
+                print(msg_list)
+        
+        return data
+
 
 if __name__ == "__main__":
     mag = MagSensor(SER_MAG, 1, 'passive')
@@ -191,8 +235,17 @@ if __name__ == "__main__":
             #pos_data = mag.get_real_position()
             #print(f'xpos={pos_data[0]}, ypos={pos_data[1]}')
             
-            pid_data = mag.get_data_pid_test()
-            print(f'x_pos={pid_data[0][0]}, y_pos={pid_data[1][0]}')
-            print(f'x_dac={pid_data[0][1]}, y_dac={pid_data[1][1]}')
+            # pid_data = mag.get_data_pid_test()
+            # print(f'x_pos={pid_data[0][0]}, y_pos={pid_data[1][0]}')
+            # print(f'x_dac={pid_data[0][1]}, y_dac={pid_data[1][1]}')
+
+            data = mag.get_difcs_msg(counts=True, pos=True, out=True)
+            print(f'x_sin={data["x_sin"]}, x_cos={data["x_cos"]}')
+            print(f'y_sin={data["y_sin"]}, y_cos={data["y_cos"]}')
+            print(f'x_pos={data["x_pos"]}')
+            print(f'y_pos={data["y_pos"]}')
+            print(f'x_out={data["x_out"]}')
+            print(f'y_out={data["y_out"]}')
+
     except KeyboardInterrupt:
         sys.exit("\rclosing")

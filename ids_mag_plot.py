@@ -12,7 +12,7 @@ import IDSlib.IDS as IDS
 from lakeshore import Model336
 
 
-GET_COUNTS = False
+GET_COUNTS = True
 GET_MAG = True
 GET_IDS = True
 
@@ -41,16 +41,24 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
     temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4]
 
-    counts_data = mag.get_counts() if GET_COUNTS else ((0,0),(0,0))
-    mag_x_sin = counts_data[0][0] 
-    mag_x_cos = counts_data[0][1] 
-    mag_y_sin = counts_data[1][0] 
-    mag_y_cos = counts_data[1][1] 
+    # counts_data = mag.get_counts() if GET_COUNTS else ((0,0),(0,0))
+    # mag_x_sin = counts_data[0][0] 
+    # mag_x_cos = counts_data[0][1] 
+    # mag_y_sin = counts_data[1][0] 
+    # mag_y_cos = counts_data[1][1] 
 
-    pos_data = mag.get_real_position() if GET_MAG else (0,0)
-    mag_x_pos = pos_data[0] - start_x_pos
-    mag_y_pos = pos_data[1] - start_y_pos
-    
+    # pos_data = mag.get_real_position() if GET_MAG else (0,0)
+    # mag_x_pos = pos_data[0] - start_x_pos
+    # mag_y_pos = pos_data[1] - start_y_pos
+
+    difcs_data = mag.get_difcs_msg(counts=GET_COUNTS, pos=GET_MAG)
+    mag_x_sin = difcs_data["x_sin"]
+    mag_x_cos = difcs_data["x_cos"]
+    mag_y_sin = difcs_data["y_sin"]
+    mag_y_cos = difcs_data["y_cos"]
+    mag_x_pos = difcs_data["x_pos"] - start_x_pos
+    mag_y_pos = difcs_data["y_pos"] - start_y_pos
+
     try:
         (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
         pos_1_um = float(pos_1_pm - start_1) / 1000000
@@ -321,10 +329,11 @@ if __name__ == "__main__":
     start_t_a, start_t_b, start_t_c, start_t_d = ls_366.get_all_kelvin_reading()[:4]
     
     (warningNo, start_1, start_2, start_3) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
-    start_pos_data = mag.get_real_position() if GET_MAG else (0,0) 
-    start_x_pos = start_pos_data[0]
-    start_y_pos = start_pos_data[1]
-    
+    # start_pos_data = mag.get_real_position() if GET_MAG else (0,0) 
+    difcs_msg = mag.get_difcs_msg(pos=True)
+    start_x_pos = difcs_msg["x_pos"]
+    start_y_pos = difcs_msg["y_pos"]
+    print(start_x_pos)
     try:
         # Set up plot to call animate() function periodically
         ani = animation.FuncAnimation(fig, 
