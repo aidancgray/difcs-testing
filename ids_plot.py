@@ -10,7 +10,7 @@ import IDSlib.IDS as IDS
 GET_IDS = True
 
 IDS_IP = "172.16.1.198"
-ANIM_INTER = 500
+ANIM_INTER = 50
 DATA_LIMIT = 100
 
 if os.name == "posix":
@@ -24,7 +24,7 @@ DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 def animate(i, t, ids_x, ids_y, ids_z):
     try:
         (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
-        pos_1_um = float(pos_1_pm - start_1) / 1000000
+        pos_1_um = float(pos_1_pm - start_1) / -1000000
         pos_2_um = float(pos_2_pm - start_2) / 1000000
         pos_3_um = float(pos_3_pm - start_3) / 1000000
 
@@ -83,7 +83,8 @@ def animate(i, t, ids_x, ids_y, ids_z):
                      bbox=dict(boxstyle='round', fc='w'))
         
         plt.draw()
-        append_to_csv(dataFile, data_tmp)
+        if (DEBUG != 'no-write'):
+            append_to_csv(dataFile, data_tmp)
 
         return l_ids_x, l_ids_y, l_ids_z
 
@@ -104,11 +105,14 @@ def append_to_csv(dataFile, data):
         writer.writerow(data)
 
 if __name__ == "__main__":
-    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}.csv"
-    header = ['time', 
-              'ids_x', 
-              'ids_y',
-              'ids_z',]
+    if (DEBUG != 'no-write'):
+        dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}.csv"
+        header = ['time', 
+                'ids_x', 
+                'ids_y',
+                'ids_z',]
+        print(f'dataFile: {dataFile}')
+        append_to_csv(dataFile, header)
 
     if GET_IDS:
         ids = IDS.Device(IDS_IP) 
@@ -120,8 +124,6 @@ if __name__ == "__main__":
             while not ids.displacement.getMeasurementEnabled():
                 time.sleep(1)
 
-    print(f'dataFile: {dataFile}')
-    append_to_csv(dataFile, header)
 
     # Create figure for plotting
     fig = plt.figure()
