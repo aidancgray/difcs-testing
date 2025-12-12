@@ -13,10 +13,11 @@ class dataStream():
     def tcp_connect(self):
         connected = False
         port = 9999
-        s = socket.socket()
-        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         
         while not connected:
+            s = socket.socket()
+            s.settimeout(5)
+            s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
             s.bind(('127.0.0.1', port))
             try:
                 s.connect((self.host, self.port))
@@ -59,36 +60,43 @@ class dataStream():
         self.__buffer = self.delim.join(data_list[1:])
         return data_list[0]
     
-    def process_data(self, msg_list):
+    def process_data(self, raw_data):
         data = {}
-        try:
-            if msg_list[0] == 'CNT':
-                sin = msg_list[2]
-                cos = msg_list[3]
-                if msg_list[1] == '1':
-                    data["x_sin"] = int(sin)
-                    data["x_cos"] = int(cos)
-                elif msg_list[1] == '2':
-                    data["y_sin"] = int(sin)
-                    data["y_cos"] = int(cos)
+        msg_split = [x for x in raw_data.split(';') if x]
+
+        if len(msg_split) != 3:
+            return None
+
+        for msg in msg_split:
+            msg_list = [x for x in msg.split(',') if x]
+            try:
+                if msg_list[0] == 'CNT':
+                    sin = msg_list[2]
+                    cos = msg_list[3]
+                    if msg_list[1] == '1':
+                        data["x_sin"] = int(sin)
+                        data["x_cos"] = int(cos)
+                    elif msg_list[1] == '2':
+                        data["y_sin"] = int(sin)
+                        data["y_cos"] = int(cos)
+                
+                elif msg_list[0] == 'POS':
+                    pos = msg_list[2]
+                    if msg_list[1] == '1':
+                        data["x_pos"] = float(pos)
+                    elif msg_list[1] == '2':
+                        data["y_pos"] = float(pos)
+                
+                elif msg_list[0] == 'OUT':
+                    sign   = msg_list[2]
+                    dacVal = msg_list[3]
+                    if msg_list[1] == '1':
+                        data["x_out"] = int(sign+dacVal)
+                    elif msg_list[1] == '2':
+                        data["y_out"] = int(sign+dacVal)
+            except IndexError:
+                print(msg_list)
             
-            elif msg_list[0] == 'POS':
-                pos = msg_list[2]
-                if msg_list[1] == '1':
-                    data["x_pos"] = float(pos)
-                elif msg_list[1] == '2':
-                    data["y_pos"] = float(pos)
-            
-            elif msg_list[0] == 'OUT':
-                sign   = msg_list[2]
-                dacVal = msg_list[3]
-                if msg_list[1] == '1':
-                    data["x_out"] = int(sign+dacVal)
-                elif msg_list[1] == '2':
-                    data["y_out"] = int(sign+dacVal)
-        except IndexError:
-            print(msg_list)
-        
         return data
 
 if __name__ == "__main__":
@@ -96,7 +104,11 @@ if __name__ == "__main__":
 
     try:
         while True:
-            print(difcs.get_data())
+            raw_data = difcs.get_data()
+            data = difcs.process_data(raw_data)
+            if data:
+                for key in data:
+                    print(f'{key}={data[key]}')
 
     except KeyboardInterrupt:
         sys.exit("\rclosing")
