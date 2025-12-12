@@ -1,28 +1,31 @@
 import socket
 
-DST_ADDR = '127.0.0.1'
-DST_PORT = 23
+remote_host = '127.0.0.1'
+remote_port = 23
 
-SRC_ADDR = '127.0.0.1'
-SRC_PORT = 50005
+local_host = '127.0.0.1'
+local_port = 9999
 
-s = socket.socket()
-s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-s.bind((SRC_ADDR, SRC_PORT))
-s.connect((DST_ADDR, DST_PORT))
-
-print('Telnet opened on port', SRC_PORT)
-
-try:
-    while True:
-        data, addr = s.recvfrom(1024)
+with socket.socket() as s:
+    s = socket.socket()
+    s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    
+    connected = False
+    while not connected:
+        s.bind((local_host,local_port))
         try:
-            data = data.decode('utf-8')
-        except UnicodeDecodeError as ex:
-            print(ex)
+            s.connect((remote_host,remote_port))
+        except OSError:
+            s.close()
+            local_port-=1
         else:
-            print(data) if len(data)>0 else print('--------NULL PACKET--------')
-except KeyboardInterrupt as ex:
-    print('KeyboardInterrupt')
-    s.close()
-    print('Telnet closed on port', SRC_PORT)
+            connected = True
+    print('Telnet opened on port',local_port)
+
+    data, addr = s.recvfrom(102)
+    try:
+        data = data.decode('utf-8')
+    except UnicodeDecodeError as ex:
+        print(ex)
+    else:
+        print(f"-DATA BELOW-\n{data}\n-DATA ABOVE-") if len(data)>0 else print('---EMPTY PACKET---')
