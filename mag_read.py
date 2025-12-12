@@ -192,34 +192,39 @@ class MagSensor():
         data["y_out"] = None if out else 0
 
         while None in data.values():
-            msg_list = self.serial.readline().decode().split(',')
+            rd_line = self.serial.readline()
             try:
-                if msg_list[1] == 'CNT' and counts:
-                    sin = msg_list[3]
-                    cos = msg_list[4]
-                    if msg_list[2] == '1':
-                        data["x_sin"] = int(sin)
-                        data["x_cos"] = int(cos)
-                    elif msg_list[2] == '2':
-                        data["y_sin"] = int(sin)
-                        data["y_cos"] = int(cos)
-                
-                elif msg_list[1] == 'POS' and pos:
-                    pos = msg_list[3]
-                    if msg_list[2] == '1':
-                        data["x_pos"] = float(pos)
-                    elif msg_list[2] == '2':
-                        data["y_pos"] = float(pos)
-                
-                elif msg_list[1] == 'OUT' and out:
-                    sign   = msg_list[3]
-                    dacVal = msg_list[4]
-                    if msg_list[2] == '1':
-                        data["x_out"] = int(sign+dacVal)
-                    elif msg_list[2] == '2':
-                        data["y_out"] = int(sign+dacVal)
-            except IndexError:
-                print(msg_list)
+                msg_list = rd_line.decode().split(',')
+            except UnicodeDecodeError:
+                print(rd_line)
+            else:
+                try:
+                    if msg_list[1] == 'CNT' and counts:
+                        sin = msg_list[3]
+                        cos = msg_list[4]
+                        if msg_list[2] == '1':
+                            data["x_sin"] = int(sin)
+                            data["x_cos"] = int(cos)
+                        elif msg_list[2] == '2':
+                            data["y_sin"] = int(sin)
+                            data["y_cos"] = int(cos)
+                    
+                    elif msg_list[1] == 'POS' and pos:
+                        pos = msg_list[3]
+                        if msg_list[2] == '1':
+                            data["x_pos"] = float(pos)
+                        elif msg_list[2] == '2':
+                            data["y_pos"] = float(pos)
+                    
+                    elif msg_list[1] == 'OUT' and out:
+                        sign   = msg_list[3]
+                        dacVal = msg_list[4]
+                        if msg_list[2] == '1':
+                            data["x_out"] = int(sign+dacVal)
+                        elif msg_list[2] == '2':
+                            data["y_out"] = int(sign+dacVal)
+                except IndexError:
+                    print(msg_list)
         
         return data
 
