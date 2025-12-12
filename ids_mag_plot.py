@@ -29,8 +29,8 @@ if os.name == "posix":
     SER_HTR = "/dev/tty.usbserial-A506NMAT"
 else: 
     DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
-    SER_MAG = 'COM6'
-    SER_DIF = 'COM5'
+    SER_MAG = 'COM3'
+    # SER_DIF = 'COM5'
     SER_HTR = 'COM10'
 
 DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
