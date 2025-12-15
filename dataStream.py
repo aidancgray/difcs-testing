@@ -1,7 +1,7 @@
 import sys
 import socket
 
-class dataStream():
+class DataStream():
     def __init__(self, host, port, delimiter='\n'):
         self.host = host
         self.port = port
@@ -42,7 +42,7 @@ class dataStream():
             print(f"data->|{data}|<-here") if len(data)>0 else print('----NULL PACKET----')
             return data
 
-    def get_data(self):
+    def read_data(self):
         data = self.__buffer
 
         while True:
@@ -98,14 +98,22 @@ class dataStream():
                 print(msg_list)
             
         return data
+    
+    def get_data(self):
+        data = {}
+        while ('x_pos' not in data) or ('y_pos' not in data):
+            raw_data = self.read_data()
+            data_tmp = self.process_data(raw_data)
+            data.update(data_tmp) if data_tmp else None
+        return data
+
 
 if __name__ == "__main__":
-    difcs = dataStream('127.0.0.1',23)
+    difcs = DataStream('127.0.0.1',23)
 
     try:
         while True:
-            raw_data = difcs.get_data()
-            data = difcs.process_data(raw_data)
+            data = difcs.get_data()
             if data:
                 for key in data:
                     print(f'{key}={data[key]}')
