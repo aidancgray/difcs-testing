@@ -8,7 +8,7 @@ if os.name == 'posix':
     SER_MAG = '/dev/tty.usbserial-B001A17V'
 
 else:
-    SER_MAG = 'COM6'
+    SER_MAG = 'COM3'
 
 MAX_LIST_LEN = 30
 
@@ -187,7 +187,7 @@ class DataStream():
 
 if __name__ == "__main__":
     difcs_tcp = DataStream(('127.0.0.1',23))
-    difcs_serial = DataStream(SER_MAG)
+    # difcs_serial = DataStream(SER_MAG)
 
     try:
         while True:
@@ -196,10 +196,10 @@ if __name__ == "__main__":
                 for key in data_tcp:
                     print(f'{key}={data_tcp[key]}')
             
-            data_serial = difcs_serial.get_data()
-            if data_serial:
-                for key in data_serial:
-                    print(f'{key}={data_serial[key]}')
+            # data_serial = difcs_serial.get_data()
+            # if data_serial:
+                # for key in data_serial:
+                    # print(f'{key}={data_serial[key]}')
 
     except KeyboardInterrupt:
         sys.exit("\rclosing")

@@ -8,7 +8,7 @@ from serial.serialutil import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
 if os.name == "posix":
     SER_MAG = '/dev/tty.usbserial-B001A17V'
 else:
-    SER_MAG = 'COM6'
+    SER_MAG = 'COM3'
 
 TCP_MAG_HOST = '172.16.2.61'
 TCP_MAG_PORT = 8234
@@ -51,9 +51,10 @@ class MagSensor():
         self.serial.write(msg.encode('utf-8'))
         rcv = '\0'
         while rcv[0] != "$":
-            rcv = self.serial.readline().decode()
-        rcv_list = rcv.split(',')
-        return rcv_list
+            rcv_tmp = self.serial.readline().decode('utf-8')
+            rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
+            # print(rcv)
+        return rcv
 
     def ena_PID(self, channel):
         msg = f'~D0,enaPID,{channel}\n'
@@ -180,7 +181,7 @@ class MagSensor():
                 
         return data
     
-    def get_difcs_msg(self, counts=False, pos= False, out=False):
+    def get_difcs_msg(self, counts=True, pos= True, out=True):
         data = {}
         data["x_sin"] = None if counts else 0
         data["x_cos"] = None if counts else 0
@@ -227,10 +228,54 @@ class MagSensor():
                     print(msg_list)
         
         return data
+    
+    def get_telemetry(self):
+        if self.mode == 'passive':
+            return self.get_difcs_msg()
+        
+        cmd = f'~D0,gTlm\n'
+        resp = self.serial_send(cmd)
+        resp = resp[4:-8]
+        resp_list = [x for x in resp.split(';') if x]
 
+        data = {}
+        for msg in resp_list:    
+            try:
+                msg_list = msg.split(',')
+            except UnicodeDecodeError:
+                print(msg)
+            else:
+                try:
+                    if msg_list[0] == 'CNT':
+                        sin = msg_list[2]
+                        cos = msg_list[3]
+                        if msg_list[1] == '1':
+                            data["x_sin"] = int(sin)
+                            data["x_cos"] = int(cos)
+                        elif msg_list[1] == '2':
+                            data["y_sin"] = int(sin)
+                            data["y_cos"] = int(cos)
+                    
+                    elif msg_list[0] == 'POS':
+                        pos = msg_list[2]
+                        if msg_list[1] == '1':
+                            data["x_pos"] = float(pos)
+                        elif msg_list[1] == '2':
+                            data["y_pos"] = float(pos)
+                    
+                    elif msg_list[0] == 'OUT':
+                        sign   = msg_list[2]
+                        dacVal = msg_list[3]
+                        if msg_list[1] == '1':
+                            data["x_out"] = int(sign+dacVal)
+                        elif msg_list[1] == '2':
+                            data["y_out"] = int(sign+dacVal)
+                except IndexError:
+                    print(msg_list)
+        return data
 
 if __name__ == "__main__":
-    mag = MagSensor(SER_MAG, 1, 'passive')
+    mag = MagSensor(SER_MAG, 1, 'active')
 
     try:
         while True:
@@ -244,7 +289,8 @@ if __name__ == "__main__":
             # print(f'x_pos={pid_data[0][0]}, y_pos={pid_data[1][0]}')
             # print(f'x_dac={pid_data[0][1]}, y_dac={pid_data[1][1]}')
 
-            data = mag.get_difcs_msg(counts=True, pos=True, out=True)
+            # data = mag.get_difcs_msg(counts=True, pos=True, out=True)
+            data = mag.get_telemetry()
             print(f'x_sin={data["x_sin"]}, x_cos={data["x_cos"]}')
             print(f'y_sin={data["y_sin"]}, y_cos={data["y_cos"]}')
             print(f'x_pos={data["x_pos"]}')

@@ -7,8 +7,8 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from serial.serialutil import SEVENBITS, PARITY_ODD, STOPBITS_ONE
-# from mag_read import MagSensor
-from dataStream import DataStream
+from mag_read import MagSensor
+# from dataStream import DataStream
 import IDSlib.IDS as IDS
 from lakeshore import Model336
 
@@ -40,7 +40,7 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
     temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4]
 
-    difcs_data = difcs.get_data()
+    difcs_data = difcs.get_telemetry()
     mag_x_sin = difcs_data["x_sin"]
     mag_x_cos = difcs_data["x_cos"]
     mag_y_sin = difcs_data["y_sin"]
@@ -135,9 +135,9 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         # l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
 
         l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
+        # l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
         l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-        l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
+        # l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
 
         xy_pos_0 = (1.01, 0.95)
         xy_pos_1 = (1.01, 0.70)
@@ -263,8 +263,9 @@ if __name__ == "__main__":
             while not ids.displacement.getMeasurementEnabled():
                 time.sleep(1)
     
-    difcs = DataStream(('127.0.0.1',23)) if (GET_COUNTS or GET_MAG) else None
-    # difcs = DataStream(SER_MAG) if (GET_COUNTS or GET_MAG) else None
+    # difcs = DataStream(('127.0.0.1',23)) if (GET_COUNTS or GET_MAG) else None
+    difcs = MagSensor(SER_MAG, 1, 'active') if (GET_COUNTS or GET_MAG) else None
+    # difcs = MagSensor(SER_MAG, 1, 'passive') if (GET_COUNTS or GET_MAG) else None
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
@@ -304,10 +305,10 @@ if __name__ == "__main__":
     
     (warningNo, start_1, start_2, start_3) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
 
-    print(difcs.get_data())
-    print(difcs.get_data())
-    print(difcs.get_data())
-    difcs_msg = difcs.get_data()
+    print(difcs.get_telemetry())
+    print(difcs.get_telemetry())
+    print(difcs.get_telemetry())
+    difcs_msg = difcs.get_telemetry()
     print(difcs_msg)
     start_x_pos = difcs_msg["x_pos"]
     start_y_pos = difcs_msg["y_pos"]
