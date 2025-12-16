@@ -7,7 +7,7 @@ import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from serial.serialutil import SEVENBITS, PARITY_ODD, STOPBITS_ONE
-from mag_read import MagSensor
+# from mag_read import MagSensor
 from dataStream import DataStream
 import IDSlib.IDS as IDS
 from lakeshore import Model336
@@ -18,8 +18,6 @@ GET_MAG = True
 GET_IDS = True
 
 IDS_IP = "172.16.1.198"
-DIFCS_IP = "172.16.2.61"
-DIFCS_PORT = 8234
 ANIM_INTER = 100
 DATA_LIMIT = 100
 
@@ -42,16 +40,6 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
     temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4]
 
-    # counts_data = mag.get_counts() if GET_COUNTS else ((0,0),(0,0))
-    # mag_x_sin = counts_data[0][0] 
-    # mag_x_cos = counts_data[0][1] 
-    # mag_y_sin = counts_data[1][0] 
-    # mag_y_cos = counts_data[1][1] 
-
-    # pos_data = mag.get_real_position() if GET_MAG else (0,0)
-    # mag_x_pos = pos_data[0] - start_x_pos
-    # mag_y_pos = pos_data[1] - start_y_pos
-
     difcs_data = difcs.get_data()
     mag_x_sin = difcs_data["x_sin"]
     mag_x_cos = difcs_data["x_cos"]
@@ -62,9 +50,9 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
 
     try:
         (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
-        pos_1_um = float(pos_1_pm - start_1) / 1000000
-        pos_2_um = float(pos_2_pm - start_2) / 1000000
-        pos_3_um = float(pos_3_pm - start_3) / 1000000
+        pos_1_um = float(pos_1_pm - start_1) / -1000000
+        pos_2_um = float(pos_2_pm - start_2) /  1000000
+        pos_3_um = float(pos_3_pm - start_3) /  1000000
 
         # Add x and y to lists
         meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
@@ -155,7 +143,7 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         xy_pos_1 = (1.01, 0.70)
         xy_pos_2 = (1.01, 0.45)
         xy_pos_3 = (1.01, 0.20)
-        xy_pos_4 = (1.01, -0.05)
+        # xy_pos_4 = (1.01, -0.05)
         
         ax1.annotate(f'x_pos: {"{0:.3f}".format(mag_x_pos)}', xy=xy_pos_0, xycoords='axes fraction',
                      size=10, ha='left', va='top', color='red',
@@ -170,22 +158,6 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         ax1.annotate(f'y_ids: {"{0:.3f}".format(pos_2_um)}', xy=xy_pos_3, xycoords='axes fraction',
                      size=10, ha='left', va='top', color='green', 
                      bbox=dict(boxstyle='round', fc='w'))
-        
-        # ax2.annotate(f't_htr: {temp_htr} K', xy=xy_pos_0, xycoords='axes fraction',
-        #              size=10, ha='left', va='top', 
-        #              bbox=dict(boxstyle='round', fc='w'))
-        # ax2.annotate(f't_a: {temp_a} K', xy=xy_pos_1, xycoords='axes fraction',
-        #              size=10, ha='left', va='top', 
-        #              bbox=dict(boxstyle='round', fc='w'))
-        # ax2.annotate(f't_b: {temp_b} K', xy=xy_pos_2, xycoords='axes fraction',
-        #              size=10, ha='left', va='top', 
-        #              bbox=dict(boxstyle='round', fc='w'))
-        # ax2.annotate(f't_c: {temp_c} K', xy=xy_pos_3, xycoords='axes fraction',
-        #              size=10, ha='left', va='top', 
-        #              bbox=dict(boxstyle='round', fc='w'))
-        # ax2.annotate(f't_d: {temp_d} K', xy=xy_pos_4, xycoords='axes fraction',
-        #              size=10, ha='left', va='top', 
-        #              bbox=dict(boxstyle='round', fc='w'))
         
         xy_pos_0_2 = (0.45, -0.6)
         xy_pos_1_2 = (0.45, -0.2)
@@ -291,8 +263,8 @@ if __name__ == "__main__":
             while not ids.displacement.getMeasurementEnabled():
                 time.sleep(1)
     
-    # mag = MagSensor(SER_MAG, 1, 'passive') if (GET_COUNTS or GET_MAG) else None
-    difcs = DataStream('127.0.0.1',23) if (GET_COUNTS or GET_MAG) else None
+    difcs = DataStream(('127.0.0.1',23)) if (GET_COUNTS or GET_MAG) else None
+    # difcs = DataStream(SER_MAG) if (GET_COUNTS or GET_MAG) else None
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
