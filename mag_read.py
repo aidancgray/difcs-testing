@@ -51,8 +51,13 @@ class MagSensor():
         self.serial.write(msg.encode('utf-8'))
         rcv = '\0'
         while rcv[0] != "$":
-            rcv_tmp = self.serial.readline().decode('utf-8')
-            rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
+            rcv_raw = self.serial.readline()
+            try:
+                rcv_tmp = rcv_raw.decode('utf-8')
+            except UnicodeDecodeError as ex:
+                print(f"{ex}: ")
+            else:
+                rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
             # print(rcv)
         return rcv
 

@@ -23,7 +23,7 @@ DATA_LIMIT = 100
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
-    SER_MAG = "/dev/tty.usbserial-B001A17V"
+    SER_MAG = "/dev/tty.usbserial-BG01GH9Y"
     SER_DIF = None
     SER_HTR = "/dev/tty.usbserial-A506NMAT"
 else: 
@@ -135,9 +135,9 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         # l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
 
         l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        # l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
+        l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
         l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-        # l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
+        l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
 
         xy_pos_0 = (1.01, 0.95)
         xy_pos_1 = (1.01, 0.70)
