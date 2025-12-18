@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from serial.serialutil import SEVENBITS, PARITY_ODD, STOPBITS_ONE
 from mag_read import MagSensor
-# from dataStream import DataStream
 import IDSlib.IDS as IDS
 from lakeshore import Model336
 
@@ -16,6 +15,7 @@ from lakeshore import Model336
 GET_COUNTS = True
 GET_MAG = True
 GET_IDS = True
+GET_OP = False
 GET_TEMPS = True
 
 IDS_IP = "172.16.1.198"
@@ -267,9 +267,7 @@ if __name__ == "__main__":
             while not ids.displacement.getMeasurementEnabled():
                 time.sleep(1)
     
-    # difcs = DataStream(('127.0.0.1',23)) if (GET_COUNTS or GET_MAG) else None
     difcs = MagSensor(SER_MAG, 1, 'active') if (GET_COUNTS or GET_MAG) else None
-    # difcs = MagSensor(SER_MAG, 1, 'passive') if (GET_COUNTS or GET_MAG) else None
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
@@ -304,7 +302,7 @@ if __name__ == "__main__":
     # Get starting values
     start_time = dt.datetime.now()
     
-    start_t_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
+    start_t_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else 0
     start_t_a, start_t_b, start_t_c, start_t_d = ls_366.get_all_kelvin_reading()[:4]
     
     (warningNo, start_1, start_2, start_3) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
