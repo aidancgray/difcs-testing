@@ -31,13 +31,14 @@ else:
     SER_MAG = 'COM3'
     # SER_DIF = 'COM5'
     SER_HTR = 'COM10'
+    # SER_HTR = None
 
 DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 
 # This function is called periodically from FuncAnimation
 def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z):
     # Get temp and position data
-    temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else None
+    temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else 0
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4]
 
     difcs_data = difcs.get_telemetry()
@@ -182,7 +183,8 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
                      bbox=dict(boxstyle='round', fc='w'))
         
         plt.draw()
-        append_to_csv(dataFile, data_tmp)
+        if (DEBUG != 'no-write'):
+            append_to_csv(dataFile, data_tmp)
 
         return l_xp, l_yp, l_ids_x, l_ids_y, #l_t_htr, l_t_a, l_t_b, l_t_c, l_t_d
 
@@ -212,7 +214,7 @@ def append_to_csv(dataFile, data):
         writer.writerow(data)
 
 def get_Lakeshore_temp(ser):
-    msg = ('CDAT?').encode()
+    msg = ('CDAT?\n').encode()
     ser.write(msg)
     resp = ser.readline()
     ls_temp = resp.decode()
