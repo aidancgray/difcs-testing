@@ -56,6 +56,7 @@ class MagSensor():
                 rcv_tmp = rcv_raw.decode('utf-8')
             except UnicodeDecodeError as ex:
                 print(f"{ex}: ")
+                return None
             else:
                 rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
             # print(rcv)
@@ -240,6 +241,8 @@ class MagSensor():
         
         cmd = f'~D0,gTlm\n'
         resp = self.serial_send(cmd)
+        if not resp:
+            return None
         resp = resp[4:-8]
         resp_list = [x for x in resp.split(';') if x]
 

@@ -42,6 +42,8 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4]
 
     difcs_data = difcs.get_telemetry()
+    if not difcs_data:
+        return None
     mag_x_sin = difcs_data["x_sin"]
     mag_x_cos = difcs_data["x_cos"]
     mag_y_sin = difcs_data["y_sin"]
@@ -186,7 +188,7 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         if (DEBUG != 'no-write'):
             append_to_csv(dataFile, data_tmp)
 
-        return l_xp, l_yp, l_ids_x, l_ids_y, #l_t_htr, l_t_a, l_t_b, l_t_c, l_t_d
+        return None #l_xp, l_yp, l_ids_x, l_ids_y, #l_t_htr, l_t_a, l_t_b, l_t_c, l_t_d
 
 def setup_plots():
     gs = fig.add_gridspec(3, 1, wspace=0, hspace=0.1)
