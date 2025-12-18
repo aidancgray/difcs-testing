@@ -59,18 +59,7 @@ class MagSensor():
                 return None
             else:
                 rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
-            # print(rcv)
         return rcv
-
-    def ena_PID(self, channel):
-        msg = f'~D0,enaPID,{channel}\n'
-        resp = self.serial_send(msg)
-        return resp
-    
-    def dis_PID(self, channel):
-        msg = f'~D0,disPID,{channel}\n'
-        resp = self.serial_send(msg)
-        return resp
     
     def set_op(self, channel, output):
         msg = f'~D0,sManOP,{channel},{output}\n'
