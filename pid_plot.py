@@ -19,8 +19,8 @@ GET_OP = True
 GET_TEMPS = False
 
 IDS_IP = "172.16.1.198"
-ANIM_INTER = 50
-DATA_LIMIT = 300
+ANIM_INTER = 200
+DATA_LIMIT = 100
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -41,7 +41,7 @@ CHANNEL = int(sys.argv[1])
 # SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  110,  100,   90,   80,   70,   60,   50,   40,   30,   20,  10, 0, 
                 #  -10, -20, -30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140, -150, -160, -150, -140, -130, -120, -110, -100, -90, -80, -70, -60, -50, -40, -30, -20, -10, 0] 
 # SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  110,  100,  90,  80,  70,  60,  50,  40,  30,  20,  10, 0]
-SETPOINT_LIST = [ 10,  20,  30,  40,  30,  20,  10, 0]
+SETPOINT_LIST = [ 10, 20, 10, 0]
 SETPOINT_TIMER = 23
 
 def setpoint_increment(channel):
@@ -71,7 +71,7 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
     global data_count
 
     # Get temp and position data
-    temp_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else 0
+    temp_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4] if GET_TEMPS else (0,0,0,0)
 
     dac_x = 0
@@ -83,16 +83,22 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         mag_x_cos = difcs_data["x_cos"]
         mag_y_sin = difcs_data["y_sin"]
         mag_y_cos = difcs_data["y_cos"]
-        mag_x_pos = difcs_data["x_pos"] - start_x_pos
-        mag_y_pos = difcs_data["y_pos"] - start_y_pos
+        mag_x_pos_abs = difcs_data["x_pos"]
+        mag_y_pos_abs = difcs_data["y_pos"]
+        mag_x_pos = mag_x_pos_abs - start_x_pos   
+        mag_y_pos = mag_y_pos_abs - start_y_pos           
         dac_x     = difcs_data["x_out"]
         dac_y     = difcs_data["y_out"]
 
         try:
             (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
-            pos_1_um = float(pos_1_pm - start_1) / -1000000
-            pos_2_um = float(pos_2_pm - start_2) /  1000000
-            pos_3_um = float(pos_3_pm - start_3) /  1000000
+            abs_1_um = float(pos_1_pm) / 1000000
+            abs_2_um = float(pos_2_pm) / 1000000
+            abs_3_um = float(pos_3_pm) / 1000000
+            
+            pos_1_um =  -abs_1_um + (float(start_1) /  1000000)
+            pos_2_um =   abs_2_um - (float(start_2) /  1000000)
+            pos_3_um =   abs_3_um - (float(start_3) /  1000000)
 
             # Add x and y to lists
             meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
@@ -105,11 +111,11 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
                         mag_x_cos,
                         mag_y_sin,
                         mag_y_cos,
-                        mag_x_pos,
-                        mag_y_pos,
-                        pos_1_um,
-                        pos_2_um,
-                        pos_3_um,
+                        mag_x_pos_abs,
+                        mag_y_pos_abs,
+                        abs_1_um,
+                        abs_2_um,
+                        abs_3_um,
                         ]
             if (DEBUG != 'no-write'):
                 append_to_csv(dataFile, data_tmp)
@@ -216,7 +222,7 @@ def append_to_csv(dataFile, data):
         writer.writerow(data)
 
 def get_Lakeshore_temp(ser):
-    msg = ('CDAT?').encode()
+    msg = ('CDAT?\n').encode()
     ser.write(msg)
     resp = ser.readline()
     ls_temp = resp.decode()
@@ -297,7 +303,7 @@ if __name__ == "__main__":
     # Get starting values
     start_time = dt.datetime.now()
     
-    start_t_htr = get_Lakeshore_temp(ser_htr) if SER_HTR else 0
+    start_t_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0
     start_t_a, start_t_b, start_t_c, start_t_d = ls_366.get_all_kelvin_reading()[:4]
     
     (warningNo, start_1, start_2, start_3) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)

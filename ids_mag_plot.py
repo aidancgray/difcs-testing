@@ -48,15 +48,19 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         mag_x_cos = difcs_data["x_cos"]
         mag_y_sin = difcs_data["y_sin"]
         mag_y_cos = difcs_data["y_cos"]
-        mag_x_pos = difcs_data["x_pos"] - start_x_pos
-        mag_y_pos = difcs_data["y_pos"] - start_y_pos
+        mag_x_pos = difcs_data["x_pos"] #- start_x_pos
+        mag_y_pos = difcs_data["y_pos"] #- start_y_pos
 
         try:
             (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
-            pos_1_um = float(pos_1_pm - start_1) / -1000000
-            pos_2_um = float(pos_2_pm - start_2) /  1000000
-            pos_3_um = float(pos_3_pm - start_3) /  1000000
-
+            abs_1_um = float(pos_1_pm) / 1000000
+            abs_2_um = float(pos_2_pm) / 1000000
+            abs_3_um = float(pos_3_pm) / 1000000
+            
+            pos_1_um =  -abs_1_um + (float(start_1) /  1000000)
+            pos_2_um =   abs_2_um - (float(start_2) /  1000000)
+            pos_3_um =   abs_3_um - (float(start_3) /  1000000)
+            
             # Add x and y to lists
             meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
             
@@ -72,9 +76,9 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
                         mag_y_cos,
                         mag_x_pos,
                         mag_y_pos,
-                        pos_1_um,
-                        pos_2_um,
-                        pos_3_um,
+                        abs_1_um,
+                        abs_2_um,
+                        abs_3_um,
                         ]
             if (DEBUG != 'no-write'):
                 append_to_csv(dataFile, data_tmp)

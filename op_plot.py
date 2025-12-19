@@ -19,7 +19,7 @@ GET_OP = False
 GET_TEMPS = True
 
 IDS_IP = "172.16.1.198"
-ANIM_INTER = 100
+ANIM_INTER = 200
 DATA_LIMIT = 100
 
 if os.name == "posix":
@@ -38,11 +38,11 @@ DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 #                 95, 90, 85, 80, 75, 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10,  5,  0,
                 # -5,-10,-15,-10, -5,  0]
 
-OUTPUT_LIST = [  5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
-                70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10,  5,  0, 
-                -5,-10,-15,-10, -5,  0]
+# OUTPUT_LIST = [  5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75,
+                # 70, 65, 60, 55, 50, 45, 40, 35, 30, 25, 20, 15, 10,  5,  0, 
+                # -5,-10,-15,-10, -5,  0]
 
-# OUTPUT_LIST = [  5, 10, 15, 10,  5,  0 ]
+OUTPUT_LIST = [  5, 10, 15, 10,  5,  0 ]
 CHANNEL = sys.argv[1]
 OUTPUT_TIMER = 30
 
@@ -53,7 +53,7 @@ def output_increment(channel):
         op_incr = 0
     
     new_op = OUTPUT_LIST[op_incr]
-    difcs.set_op(new_op, channel)
+    difcs.set_op(channel,new_op)
     op_incr+=1
     return new_op
 
@@ -83,14 +83,20 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         mag_x_cos = difcs_data["x_cos"]
         mag_y_sin = difcs_data["y_sin"]
         mag_y_cos = difcs_data["y_cos"]
-        mag_x_pos = difcs_data["x_pos"] - start_x_pos
-        mag_y_pos = difcs_data["y_pos"] - start_y_pos
-    
-        try:
+        mag_x_pos_abs = difcs_data["x_pos"]
+        mag_y_pos_abs = difcs_data["y_pos"]
+        mag_x_pos = mag_x_pos_abs - start_x_pos
+        mag_y_pos = mag_y_pos_abs - start_y_pos
+        
+        try:    
             (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None,0,0,0)
-            pos_1_um = float(pos_1_pm - start_1) / -1000000
-            pos_2_um = float(pos_2_pm - start_2) /  1000000
-            pos_3_um = float(pos_3_pm - start_3) /  1000000
+            abs_1_um = float(pos_1_pm) / 1000000
+            abs_2_um = float(pos_2_pm) / 1000000
+            abs_3_um = float(pos_3_pm) / 1000000
+            
+            pos_1_um =  -abs_1_um + (float(start_1) /  1000000)
+            pos_2_um =   abs_2_um - (float(start_2) /  1000000)
+            pos_3_um =   abs_3_um - (float(start_3) /  1000000)
 
             # Add x and y to lists
             meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
@@ -101,11 +107,11 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
                         mag_x_cos,
                         mag_y_sin,
                         mag_y_cos,
-                        mag_x_pos,
-                        mag_y_pos,
-                        pos_1_um,
-                        pos_2_um,
-                        pos_3_um,
+                        mag_x_pos_abs,
+                        mag_y_pos_abs,
+                        abs_1_um,
+                        abs_2_um,
+                        abs_3_um,
                         ]
             if (DEBUG != 'no-write'):
                 append_to_csv(dataFile, data_tmp)
@@ -210,7 +216,7 @@ def append_to_csv(dataFile, data):
         writer.writerow(data)
 
 def get_Lakeshore_temp(ser):
-    msg = ('CDAT?').encode()
+    msg = ('CDAT?\n').encode()
     ser.write(msg)
     resp = ser.readline()
     ls_temp = resp.decode()
@@ -324,7 +330,7 @@ if __name__ == "__main__":
     finally:
         time_stop = time.perf_counter()
         print(f"{data_count} / {"{0:.2f}".format(time_stop-time_start)}")
-        difcs.set_op(0, 1)
-        difcs.set_op(0, 2)
+        difcs.set_op(1,0)
+        difcs.set_op(2,0)
         print("closing")
         sys.exit(0)
