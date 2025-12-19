@@ -24,17 +24,21 @@ DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 def animate(i, t, ids_x, ids_y, ids_z):
     try:
         (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
-        pos_1_um = float(pos_1_pm - start_1) / -1000000
-        pos_2_um = float(pos_2_pm - start_2) / 1000000
-        pos_3_um = float(pos_3_pm - start_3) / 1000000
+        abs_1_um = float(pos_1_pm) / 1000000
+        abs_2_um = float(pos_2_pm) / 1000000
+        abs_3_um = float(pos_3_pm) / 1000000
+        
+        pos_1_um =  -abs_1_um + (float(start_1) /  1000000)
+        pos_2_um =   abs_2_um - (float(start_2) /  1000000)
+        pos_3_um =   abs_3_um - (float(start_3) /  1000000)
 
         # Add x and y to lists
         meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
         
         data_tmp = [meas_time, 
-                    pos_1_um,
-                    pos_2_um,
-                    pos_3_um,
+                    abs_1_um,
+                    abs_2_um,
+                    abs_3_um,
                     ]
 
         t.append(meas_time)
