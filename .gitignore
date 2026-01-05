@@ -3,3 +3,4 @@
 /IDSlib/__pycache__
 /IDSlib/streaming
 /monitor-file
+*.csv
