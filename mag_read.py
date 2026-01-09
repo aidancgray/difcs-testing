@@ -55,7 +55,7 @@ class MagSensor():
             try:
                 rcv_tmp = rcv_raw.decode('utf-8')
             except UnicodeDecodeError as ex:
-                print(f"{ex}: ")
+                print(f"{ex}: {rcv_raw}")
                 return None
             else:
                 rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
