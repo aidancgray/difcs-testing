@@ -6,7 +6,7 @@ import serial
 import datetime as dt
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
-from serial.serialutil import SEVENBITS, EIGHTBITS, PARITY_ODD, PARITY_NONE, STOPBITS_ONE
+from serial.serialutil import SEVENBITS, PARITY_ODD, STOPBITS_ONE
 from mag_read import MagSensor
 import IDSlib.IDS as IDS
 from lakeshore import Model336
@@ -71,7 +71,7 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
     global data_count
 
     # Get temp and position data
-    temp_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0
+    temp_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0  # noqa: F841
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4] if GET_TEMPS else (0,0,0,0)
 
     dac_x = 0
@@ -193,7 +193,7 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
     plt.draw()
 
     sp_ret = setpoint_timer(chn)
-    if sp_ret != None:
+    if sp_ret is not None:
         print(f"   {chn}: {sp_ret}um")
         setpoint = sp_ret
 
@@ -316,9 +316,9 @@ if __name__ == "__main__":
     start_x_pos = difcs_msg["x_pos"]
     start_y_pos = difcs_msg["y_pos"]
     
-    setpoint = [start_x_pos, start_y_pos][chn-1]
-    print(f"start position setpoint:{setpoint}")
-    difcs.set_sp(chn, setpoint)
+    init_sp = [start_x_pos, start_y_pos][chn-1]
+    print(f"start position setpoint:{init_sp}")
+    difcs.set_sp(chn, init_sp)
     difcs.set_ChMode(chn, 'MAGSNS')
 
     data_count = 0
