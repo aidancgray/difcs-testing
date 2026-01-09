@@ -94,11 +94,11 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
 
             x_sin.append(mag_x_sin)
             x_cos.append(mag_x_cos)
-            x_pos.append(mag_x_pos)
+            x_pos.append(mag_x_pos-start_x_pos)
             
             y_sin.append(mag_y_sin)
             y_cos.append(mag_y_cos)
-            y_pos.append(mag_y_pos)
+            y_pos.append(mag_y_pos-start_y_pos)
 
             ids_x.append(pos_1_um)
             ids_y.append(pos_2_um)
@@ -128,71 +128,73 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         except ValueError:
             return None
 
-    fig.clear()
-    # ax1, ax2 = setup_plots()
-    ax1 = setup_plots()
+        fig.clear()
+        # ax1, ax2 = setup_plots()
+        ax1 = setup_plots()
 
-    # Draw x and y lists
-    marker_fmt = '.'
-    ms_fmt = 5
-    lw_fmt = 1
+        # Draw x and y lists
+        marker_fmt = '.'
+        ms_fmt = 5
+        lw_fmt = 1
 
-    # l_t_htr, = ax2.plot(t, t_htr, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-    # l_t_a,   = ax2.plot(t, t_a, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
-    # l_t_b,   = ax2.plot(t, t_b, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
-    # l_t_c,   = ax2.plot(t, t_c, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-    # l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
+        # l_t_htr, = ax2.plot(t, t_htr, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
+        # l_t_a,   = ax2.plot(t, t_a, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
+        # l_t_b,   = ax2.plot(t, t_b, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
+        # l_t_c,   = ax2.plot(t, t_c, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
+        # l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
 
-    l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-    l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
-    l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-    l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
+        l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
+        l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
+        l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
+        l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
 
-    xy_pos_0 = (1.01, 0.95)
-    xy_pos_1 = (1.01, 0.70)
-    xy_pos_2 = (1.01, 0.45)
-    xy_pos_3 = (1.01, 0.20)
-    # xy_pos_4 = (1.01, -0.05)
-    
-    ax1.annotate(f'x_pos: {"{0:.3f}".format(x_pos[-1])}', xy=xy_pos_0, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='red',
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f'y_pos: {"{0:.3f}".format(y_pos[-1])}', xy=xy_pos_2, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='blue', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    
-    ax1.annotate(f'x_ids: {"{0:.3f}".format(ids_x[-1])}', xy=xy_pos_1, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='orange', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f'y_ids: {"{0:.3f}".format(ids_y[-1])}', xy=xy_pos_3, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='green', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    
-    xy_pos_0_2 = (0.45, -0.6)
-    xy_pos_1_2 = (0.45, -0.2)
-    xy_pos_2_2 = (0.45, -0.3)
-    xy_pos_3_2 = (0.45, -0.4)
-    xy_pos_4_2 = (0.45, -0.5)
-    
-    ax1.annotate(f't_e: {"{0:.2f}".format(t_htr[-1])} K', xy=xy_pos_0_2, xycoords='axes fraction',
-                    size=10, ha='left', va='top', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f't_a: {"{0:.2f}".format(t_a[-1])} K', xy=xy_pos_1_2, xycoords='axes fraction',
-                    size=10, ha='left', va='top', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f't_b: {"{0:.2f}".format(t_b[-1])} K', xy=xy_pos_2_2, xycoords='axes fraction',
-                    size=10, ha='left', va='top', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f't_c: {"{0:.2f}".format(t_c[-1])} K', xy=xy_pos_3_2, xycoords='axes fraction',
-                    size=10, ha='left', va='top', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f't_d: {"{0:.2f}".format(t_d[-1])} K', xy=xy_pos_4_2, xycoords='axes fraction',
-                    size=10, ha='left', va='top', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    
-    plt.draw()
+        xy_pos_0 = (1.01, 0.95)
+        xy_pos_1 = (1.01, 0.70)
+        xy_pos_2 = (1.01, 0.45)
+        xy_pos_3 = (1.01, 0.20)
+        # xy_pos_4 = (1.01, -0.05)
+        
+        ax1.annotate(f'x_pos: {"{0:.3f}".format(x_pos[-1])}', xy=xy_pos_0, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='red',
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f'y_pos: {"{0:.3f}".format(y_pos[-1])}', xy=xy_pos_2, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='blue', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        
+        ax1.annotate(f'x_ids: {"{0:.3f}".format(ids_x[-1])}', xy=xy_pos_1, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='orange', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f'y_ids: {"{0:.3f}".format(ids_y[-1])}', xy=xy_pos_3, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='green', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        
+        xy_pos_0_2 = (0.45, -0.6)
+        xy_pos_1_2 = (0.45, -0.2)
+        xy_pos_2_2 = (0.45, -0.3)
+        xy_pos_3_2 = (0.45, -0.4)
+        xy_pos_4_2 = (0.45, -0.5)
+        
+        ax1.annotate(f't_e: {"{0:.2f}".format(t_htr[-1])} K', xy=xy_pos_0_2, xycoords='axes fraction',
+                        size=10, ha='left', va='top', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f't_a: {"{0:.2f}".format(t_a[-1])} K', xy=xy_pos_1_2, xycoords='axes fraction',
+                        size=10, ha='left', va='top', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f't_b: {"{0:.2f}".format(t_b[-1])} K', xy=xy_pos_2_2, xycoords='axes fraction',
+                        size=10, ha='left', va='top', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f't_c: {"{0:.2f}".format(t_c[-1])} K', xy=xy_pos_3_2, xycoords='axes fraction',
+                        size=10, ha='left', va='top', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f't_d: {"{0:.2f}".format(t_d[-1])} K', xy=xy_pos_4_2, xycoords='axes fraction',
+                        size=10, ha='left', va='top', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        
+        plt.draw()
 
-    return l_xp, l_yp, l_ids_x, l_ids_y, #l_t_htr, l_t_a, l_t_b, l_t_c, l_t_d
+        return l_xp, l_yp, l_ids_x, l_ids_y, #l_t_htr, l_t_a, l_t_b, l_t_c, l_t_d
+    
+    return None
 
 def setup_plots():
     gs = fig.add_gridspec(3, 1, wspace=0, hspace=0.1)
@@ -340,6 +342,6 @@ if __name__ == "__main__":
         print("kb_int")
     finally:
         time_stop = time.perf_counter()
-        print(f"{data_count} / {"{0:.2f}".format(time_stop-time_start)}")
+        # print(f"{data_count} / {"{0:.2f}".format(time_stop-time_start)}")
         print("closing")
         sys.exit(0)
