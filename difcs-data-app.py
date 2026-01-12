@@ -2,7 +2,8 @@ from pathlib import Path
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-
+from collections import deque
+from io import StringIO
 from shiny import reactive
 from shiny.express import render, ui
 from shiny.session import session_context
@@ -18,8 +19,13 @@ ui.page_opts(fillable=True)
 with session_context(None):
 
     @reactive.file_reader(data_dir / data_file)
-    def logs_df():
-        return pd.read_csv(data_dir / data_file)
+    def data_df():
+        fname = data_dir / data_file
+        with open(fname, 'r') as f:
+            q = [ f.readline() ] 
+            q.extend(deque(f, DATA_LIMIT)) 
+        data_df = pd.read_csv(StringIO(''.join(q)))
+        return data_df
 
 with ui.layout_columns(col_widths=[ 10, 2],):
     with ui.card():
@@ -39,7 +45,7 @@ with ui.layout_columns(col_widths=[ 10, 2],):
             ms_fmt = 5
             lw_fmt = 1
 
-            raw_df = logs_df()
+            raw_df = data_df()
             t = raw_df["time"]
             x_pos = raw_df["mag_x_0"]
             y_pos = raw_df["mag_y_0"]
@@ -63,7 +69,7 @@ with ui.layout_columns(col_widths=[ 10, 2],):
     with ui.card():        
         @render.data_frame
         def df():
-            raw_df = logs_df()
+            raw_df = data_df()
             x_pos_df = raw_df["mag_x_0"].iloc[-1]
             y_pos_df = raw_df["mag_y_0"].iloc[-1]
             x_ids_df = raw_df["ids_x_0"].iloc[-1]
