@@ -76,6 +76,8 @@ with ui.layout_columns(col_widths=[ 10, 2],):
             y_ids_df = raw_df["ids_y_0"].iloc[-1]
             try:
                 sp_df    = raw_df["setpoint"].iloc[-1]
+                dac_x_df    = raw_df["dac_x"].iloc[-1]
+                dac_y_df    = raw_df["dac_y"].iloc[-1]
             except:  # noqa: E722
                 df = pd.DataFrame(np.array([
                     ['MAG X', "{0:.3f}".format(x_pos_df)],
@@ -86,10 +88,12 @@ with ui.layout_columns(col_widths=[ 10, 2],):
             else:
                 df = pd.DataFrame(np.array([
                     ['SETPOINT', "{0:.3f}".format(sp_df)],
+                    ['DAC X', dac_x_df],
                     ['MAG X', "{0:.3f}".format(x_pos_df)],
                     ['IDS X', "{0:.3f}".format(x_ids_df)],
                     ['MAG Y', "{0:.3f}".format(y_pos_df)],
                     ['IDS Y', "{0:.3f}".format(y_ids_df)],
+                    ['DAC Y', dac_y_df],
                 ]), columns=['KEY', 'VALUE'])
             
             return df
