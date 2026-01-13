@@ -17,7 +17,7 @@ GET_OP = True
 GET_TEMPS = False
 
 IDS_IP = "172.16.1.198"
-DATA_RATE = 200
+DATA_RATE = 400
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -31,11 +31,13 @@ else:
 DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 
 if len(sys.argv) != 2:
-    sys.exit('NO CHANNEL SPECIFIED')
+    # sys.exit('NO CHANNEL SPECIFIED')
+    CHANNEL = 1
+else:
+    CHANNEL = int(sys.argv[1])
 
-CHANNEL = int(sys.argv[1])
-SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  110,  100,   90,   80,   70,   60,   50,   40,   30,   20,  10, 0, 
-                 -10, -20, -30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140, -150, -160, -150, -140, -130, -120, -110, -100, -90, -80, -70, -60, -50, -40, -30, -20, -10, 0] 
+SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  130,  140,  150,  140,  130,  120,  110,  100,  90,  80,  70,  60,  50,  40,  30,  20,  10, 0, 
+                 -10, -20, -30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140, -150, -140, -130, -120, -110, -100, -90, -80, -70, -60, -50, -40, -30, -20, -10, 0] 
 # SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  110,  100,  90,  80,  70,  60,  50,  40,  30,  20,  10, 0]
 # SETPOINT_LIST = [ 10, 20, 30, 40, 50, 60, 70,10, 0]
 SETPOINT_TIMER = 29
@@ -125,6 +127,13 @@ def dataLoop():
             
         except ValueError:
             return None
+        
+        sp_ret = setpoint_timer(chn)
+        if sp_ret is not None:
+            print(f"   {chn}: {sp_ret}um")
+            setpoint = sp_ret
+        
+        return data_count
 
 def append_to_csv(dataFile, data):
     with open(f'{dataFile}', 'a', newline='') as fd:
@@ -222,7 +231,7 @@ if __name__ == "__main__":
     time_start = time.perf_counter()
     try:
         while True:
-            dataLoop()
+            resp = dataLoop()
             time.sleep(DATA_RATE/1000)
     except KeyboardInterrupt:
         print("kb_int")

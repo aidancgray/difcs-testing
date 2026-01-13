@@ -79,16 +79,29 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
     
     difcs_data = difcs.get_telemetry()
     if difcs_data:
+        # mag_x_sin = difcs_data["x_sin"]
+        # mag_x_cos = difcs_data["x_cos"]
+        # mag_y_sin = difcs_data["y_sin"]
+        # mag_y_cos = difcs_data["y_cos"]
+        # mag_x_pos_abs = difcs_data["x_pos"]
+        # mag_y_pos_abs = difcs_data["y_pos"]
+        # mag_x_pos = mag_x_pos_abs - start_x_pos   
+        # mag_y_pos = mag_y_pos_abs - start_y_pos           
+        # dac_x     = difcs_data["x_out"]
+        # dac_y     = difcs_data["y_out"]
+
         mag_x_sin = difcs_data["x_sin"]
         mag_x_cos = difcs_data["x_cos"]
         mag_y_sin = difcs_data["y_sin"]
         mag_y_cos = difcs_data["y_cos"]
-        mag_x_pos_abs = difcs_data["x_pos"]
-        mag_y_pos_abs = difcs_data["y_pos"]
-        mag_x_pos = mag_x_pos_abs - start_x_pos   
-        mag_y_pos = mag_y_pos_abs - start_y_pos           
+        mag_x_pos = difcs_data["x_pos"]
+        mag_y_pos = difcs_data["y_pos"]
         dac_x     = difcs_data["x_out"]
         dac_y     = difcs_data["y_out"]
+
+        mag_x_0 = mag_x_pos - start_x_pos
+        mag_y_0 = mag_y_pos - start_y_pos
+
 
         try:
             (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
@@ -96,14 +109,28 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
             abs_2_um = float(pos_2_pm) / 1000000
             abs_3_um = float(pos_3_pm) / 1000000
             
-            pos_1_um =  -abs_1_um + (float(start_1) /  1000000)
-            pos_2_um =   abs_2_um - (float(start_2) /  1000000)
-            pos_3_um =   abs_3_um - (float(start_3) /  1000000)
+            ids_x_0 =  -abs_1_um + (float(start_1) /  1000000)
+            ids_y_0 =   abs_2_um - (float(start_2) /  1000000)
+            ids_z_0 =   abs_3_um - (float(start_3) /  1000000)
 
             # Add x and y to lists
             meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
             
-            data_tmp = [meas_time,
+            data_tmp = [
+                        # meas_time,
+                        # setpoint,
+                        # dac_x,
+                        # dac_y, 
+                        # mag_x_sin,
+                        # mag_x_cos,
+                        # mag_y_sin,
+                        # mag_y_cos,
+                        # mag_x_pos_abs,
+                        # mag_y_pos_abs,
+                        # abs_1_um,
+                        # abs_2_um,
+                        # abs_3_um,
+                        meas_time,
                         setpoint,
                         dac_x,
                         dac_y, 
@@ -111,11 +138,16 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
                         mag_x_cos,
                         mag_y_sin,
                         mag_y_cos,
-                        mag_x_pos_abs,
-                        mag_y_pos_abs,
+                        mag_x_pos,
+                        mag_y_pos,
                         abs_1_um,
                         abs_2_um,
                         abs_3_um,
+                        mag_x_0,
+                        mag_y_0,
+                        ids_x_0,
+                        ids_y_0,
+                        ids_z_0,
                         ]
             if (DEBUG != 'no-write'):
                 append_to_csv(dataFile, data_tmp)
@@ -131,9 +163,9 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
             y_cos.append(mag_y_cos)
             y_pos.append(mag_y_pos)
 
-            ids_x.append(pos_1_um)
-            ids_y.append(pos_2_um)
-            ids_z.append(pos_3_um)
+            ids_x.append(ids_x_0)
+            ids_y.append(ids_y_0)
+            ids_z.append(ids_z_0)
 
             # Limit x and y lists to DATA_LIMIT items
             t = t[-DATA_LIMIT:]
@@ -152,52 +184,54 @@ def animate(i, t, x_sin, x_cos, y_sin, y_cos, x_pos, y_pos, ids_x, ids_y, ids_z)
         except ValueError:
             return None
 
-    fig.clear()  # clear
-    ax1, ax2 = setup_plots()
+        fig.clear()  # clear
+        ax1, ax2 = setup_plots()
 
-    # Draw x and y lists
-    marker_fmt = '.'
-    ms_fmt = 5
-    lw_fmt = 1
+        # Draw x and y lists
+        marker_fmt = '.'
+        ms_fmt = 5
+        lw_fmt = 1
 
-    l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-    l_ids_x, = ax2.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
-    l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-    l_ids_y, = ax2.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
+        l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
+        l_ids_x, = ax2.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
+        l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
+        l_ids_y, = ax2.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
 
-    xy_pos_0 = (1.01, 0.95)
-    xy_pos_1 = (1.01, 0.70)
-    xy_pos_2 = (1.01, 0.45)
-    xy_pos_3 = (1.01, 0.20)
+        xy_pos_0 = (1.01, 0.95)
+        xy_pos_1 = (1.01, 0.70)
+        xy_pos_2 = (1.01, 0.45)
+        xy_pos_3 = (1.01, 0.20)
+        
+        ax1.annotate(f'x_pos: {"{0:.3f}".format(x_pos[-1])}', xy=xy_pos_0, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='red',
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f'y_pos: {"{0:.3f}".format(y_pos[-1])}', xy=xy_pos_1, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='blue',
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f'sp: {"{0:.1f}".format(setpoint)}', xy=xy_pos_2, xycoords='axes fraction',
+                        size=10, ha='left', va='top', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax1.annotate(f'dacs: {dac_x},\n      {dac_y}', xy=xy_pos_3, xycoords='axes fraction',
+                        size=10, ha='left', va='top', 
+                        bbox=dict(boxstyle='round', fc='w'))
+        
+        ax2.annotate(f'x_ids: {"{0:.3f}".format(ids_x[-1])}', xy=xy_pos_0, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='orange',
+                        bbox=dict(boxstyle='round', fc='w'))
+        ax2.annotate(f'y_ids: {"{0:.3f}".format(ids_y[-1])}', xy=xy_pos_1, xycoords='axes fraction',
+                        size=10, ha='left', va='top', color='green',
+                        bbox=dict(boxstyle='round', fc='w'))
+        
+        plt.draw()
+
+        sp_ret = setpoint_timer(chn)
+        if sp_ret is not None:
+            print(f"   {chn}: {sp_ret}um")
+            setpoint = sp_ret
+
+        return l_xp, l_yp, l_ids_x, l_ids_y
     
-    ax1.annotate(f'x_pos: {"{0:.3f}".format(x_pos[-1])}', xy=xy_pos_0, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='red',
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f'y_pos: {"{0:.3f}".format(y_pos[-1])}', xy=xy_pos_1, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='blue',
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f'sp: {"{0:.1f}".format(setpoint)}', xy=xy_pos_2, xycoords='axes fraction',
-                    size=10, ha='left', va='top', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax1.annotate(f'dacs: {dac_x},\n      {dac_y}', xy=xy_pos_3, xycoords='axes fraction',
-                    size=10, ha='left', va='top', 
-                    bbox=dict(boxstyle='round', fc='w'))
-    
-    ax2.annotate(f'x_ids: {"{0:.3f}".format(ids_x[-1])}', xy=xy_pos_0, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='orange',
-                    bbox=dict(boxstyle='round', fc='w'))
-    ax2.annotate(f'y_ids: {"{0:.3f}".format(ids_y[-1])}', xy=xy_pos_1, xycoords='axes fraction',
-                    size=10, ha='left', va='top', color='green',
-                    bbox=dict(boxstyle='round', fc='w'))
-    
-    plt.draw()
-
-    sp_ret = setpoint_timer(chn)
-    if sp_ret is not None:
-        print(f"   {chn}: {sp_ret}um")
-        setpoint = sp_ret
-
-    return l_xp, l_yp, l_ids_x, l_ids_y
+    return None
 
 def setup_plots():
     gs = fig.add_gridspec(2, 1, wspace=0, hspace=0.1)

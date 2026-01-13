@@ -228,7 +228,7 @@ class MagSensor():
         if self.mode == 'passive':
             return self.get_difcs_msg()
         
-        cmd = f'~D0,gTlm\n'
+        cmd = '~D0,gTlm\n'
         resp = self.serial_send(cmd)
         if not resp:
             return None
