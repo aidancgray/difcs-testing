@@ -229,9 +229,12 @@ class MagSensor():
             return self.get_difcs_msg()
         
         cmd = '~D0,gTlm\n'
-        resp = self.serial_send(cmd)
-        if not resp:
-            return None
+        
+        resp = None
+        
+        while not resp:
+            resp = self.serial_send(cmd)
+        
         resp = resp[4:-8]
         resp_list = [x for x in resp.split(';') if x]
 

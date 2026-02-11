@@ -160,7 +160,7 @@ if __name__ == "__main__":
     sp_timer = 0
     setpoint = 0
 
-    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_{chn}.csv"
+    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}.csv"
     header = ['time',
               'setpoint',
               'dac_x', 
@@ -181,15 +181,17 @@ if __name__ == "__main__":
               'ids_z_0',
               ]
     
-    if SER_HTR:
+    if (SER_HTR and GET_TEMPS):
         ser_htr = serial.Serial(port=SER_HTR, 
                                 baudrate=1200, 
                                 timeout=1, 
                                 bytesize=SEVENBITS,
                                 parity=PARITY_ODD,
                                 stopbits=STOPBITS_ONE)
+    else:
+        ser_htr = None
     
-    ls_366 = Model336()
+    ls_366 = Model336() if GET_TEMPS else None
 
     if GET_IDS:
         ids = IDS.Device(IDS_IP)
@@ -209,8 +211,8 @@ if __name__ == "__main__":
     # Get starting values
     start_time = dt.datetime.now()
     
-    start_t_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0
-    start_t_a, start_t_b, start_t_c, start_t_d = ls_366.get_all_kelvin_reading()[:4]
+    start_t_htr = get_Lakeshore_temp(ser_htr) if ser_htr else 0
+    start_t_a, start_t_b, start_t_c, start_t_d = ls_366.get_all_kelvin_reading()[:4] if ls_366 else 0,0,0,0
     
     (warningNo, start_1, start_2, start_3) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
     
