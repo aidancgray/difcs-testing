@@ -73,8 +73,8 @@ def animate(i, t, ids_x, ids_y, ids_z):
         xy_pos_0 = (1.01, 0.95)
         xy_pos_1 = (1.01, 0.70)
         xy_pos_2 = (1.01, 0.45)
-        xy_pos_3 = (1.01, 0.20)
-        xy_pos_4 = (1.01, -0.05)
+        # xy_pos_3 = (1.01, 0.20)
+        # xy_pos_4 = (1.01, -0.05)
         
         ax1.annotate(f'x: {"{0:.3f}".format(pos_1_um)}', xy=xy_pos_0, xycoords='axes fraction',
                      size=10, ha='left', va='top', color='red', 
