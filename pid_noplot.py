@@ -10,6 +10,7 @@ import IDSlib.IDS as IDS
 from lakeshore import Model336
 
 
+FLIP_CHANNELS = True
 GET_COUNTS = True
 GET_MAG = True
 GET_IDS = True
@@ -161,25 +162,48 @@ if __name__ == "__main__":
     setpoint = 0
 
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}.csv"
-    header = ['time',
-              'setpoint',
-              'dac_x', 
-              'dac_y', 
-              'x_sin', 
-              'x_cos', 
-              'y_sin', 
-              'y_cos', 
-              'x_pos', 
-              'y_pos', 
-              'ids_x', 
-              'ids_y',
-              'ids_z',
-              'mag_x_0',
-              'mag_y_0',
-              'ids_x_0',
-              'ids_y_0',
-              'ids_z_0',
-              ]
+    if FLIP_CHANNELS:
+        header = ['time',
+                  'temp_htr', 
+                  'temp_a', 
+                  'temp_b', 
+                  'temp_c', 
+                  'temp_d', 
+                  'y_sin', 
+                  'y_cos', 
+                  'x_sin', 
+                  'x_cos', 
+                  'y_pos', 
+                  'x_pos', 
+                  'ids_x', 
+                  'ids_y',
+                  'ids_z',
+                  'mag_y_0',
+                  'mag_x_0',
+                  'ids_x_0',
+                  'ids_y_0',
+                  'ids_z_0',]
+    else:
+        header = ['time',
+                  'temp_htr', 
+                  'temp_a', 
+                  'temp_b', 
+                  'temp_c', 
+                  'temp_d', 
+                  'x_sin', 
+                  'x_cos', 
+                  'y_sin', 
+                  'y_cos', 
+                  'x_pos', 
+                  'y_pos', 
+                  'ids_x', 
+                  'ids_y',
+                  'ids_z',
+                  'mag_x_0',
+                  'mag_y_0',
+                  'ids_x_0',
+                  'ids_y_0',
+                  'ids_z_0',]
     
     if (SER_HTR and GET_TEMPS):
         ser_htr = serial.Serial(port=SER_HTR, 
@@ -239,7 +263,7 @@ if __name__ == "__main__":
         print("kb_int")
     finally:
         time_stop = time.perf_counter()
-        print(f"{data_count} / {"{0:.2f}".format(time_stop-time_start)}")
+        print(f'{data_count} / {"{0:.2f}".format(time_stop-time_start)}')
         difcs.set_ChMode(1,'MANUAL')
         difcs.set_ChMode(2,'MANUAL')
         print("closing")

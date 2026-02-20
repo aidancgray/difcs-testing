@@ -1,4 +1,5 @@
 from pathlib import Path
+import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,7 +9,10 @@ from shiny import reactive
 from shiny.express import render, ui
 from shiny.session import session_context
 
-DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
+if os.name == "posix":
+    DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
+else:
+    DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
 DATA_LIMIT = 100
 data_dir = Path(DATA_PATH)
 data_file = max([f for f in data_dir.glob("*.csv")], key=lambda item: item.stat().st_ctime)
