@@ -12,6 +12,7 @@ import IDSlib.IDS as IDS
 from lakeshore import Model336
 
 
+FLIP_CHANNELS = True
 GET_COUNTS = True
 GET_MAG = True
 GET_IDS = True
@@ -19,7 +20,7 @@ GET_OP = False
 GET_TEMPS = True
 
 IDS_IP = "172.16.1.198"
-ANIM_INTER = 100
+ANIM_INTER = 200
 DATA_LIMIT = 100
 
 if os.name == "posix":
@@ -58,7 +59,7 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
             abs_3_um = float(pos_3_pm) / 1000000
             
             pos_1_um =  -abs_1_um + (float(start_1) /  1000000)
-            pos_2_um =   abs_2_um - (float(start_2) /  1000000)
+            pos_2_um =   abs_2_um - (float(start_2) /  1000000)            
             pos_3_um =   abs_3_um - (float(start_3) /  1000000)
             
             # Add x and y to lists
@@ -125,7 +126,8 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
             ids_y = ids_y[-DATA_LIMIT:]
             ids_z = ids_z[-DATA_LIMIT:]
     
-        except ValueError:
+        except ValueError as e:
+            print(f"try ln54: {e}")
             return None
 
         fig.clear()
@@ -136,12 +138,6 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         marker_fmt = '.'
         ms_fmt = 5
         lw_fmt = 1
-
-        # l_t_htr, = ax2.plot(t, t_htr, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-        # l_t_a,   = ax2.plot(t, t_a, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
-        # l_t_b,   = ax2.plot(t, t_b, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
-        # l_t_c,   = ax2.plot(t, t_c, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-        # l_t_d,   = ax2.plot(t, t_d, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple')
 
         l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
         l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
@@ -154,10 +150,10 @@ def animate(i, t, t_htr, t_a, t_b, t_c, t_d, x_sin, x_cos, y_sin, y_cos, x_pos, 
         xy_pos_3 = (1.01, 0.20)
         # xy_pos_4 = (1.01, -0.05)
         
-        ax1.annotate(f'x_pos: {"{0:.3f}".format(x_pos[-1])}', xy=xy_pos_0, xycoords='axes fraction',
+        ax1.annotate(f'ch1_pos: {"{0:.3f}".format(x_pos[-1])}', xy=xy_pos_0, xycoords='axes fraction',
                         size=10, ha='left', va='top', color='red',
                         bbox=dict(boxstyle='round', fc='w'))
-        ax1.annotate(f'y_pos: {"{0:.3f}".format(y_pos[-1])}', xy=xy_pos_2, xycoords='axes fraction',
+        ax1.annotate(f'ch2_pos: {"{0:.3f}".format(y_pos[-1])}', xy=xy_pos_2, xycoords='axes fraction',
                         size=10, ha='left', va='top', color='blue', 
                         bbox=dict(boxstyle='round', fc='w'))
         
@@ -237,21 +233,38 @@ def get_Lakeshore_temp(ser):
 
 if __name__ == "__main__":
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}.csv"
-    header = ['time',
-              'temp_htr', 
-              'temp_a', 
-              'temp_b', 
-              'temp_c', 
-              'temp_d', 
-              'x_sin', 
-              'x_cos', 
-              'y_sin', 
-              'y_cos', 
-              'x_pos', 
-              'y_pos', 
-              'ids_x', 
-              'ids_y',
-              'ids_z',]
+    if FLIP_CHANNELS:
+        header = ['time',
+                  'temp_htr', 
+                  'temp_a', 
+                  'temp_b', 
+                  'temp_c', 
+                  'temp_d', 
+                  'y_sin', 
+                  'y_cos', 
+                  'x_sin', 
+                  'x_cos', 
+                  'y_pos', 
+                  'x_pos', 
+                  'ids_x', 
+                  'ids_y',
+                  'ids_z',]
+    else:
+        header = ['time',
+                'temp_htr', 
+                'temp_a', 
+                'temp_b', 
+                'temp_c', 
+                'temp_d', 
+                'x_sin', 
+                'x_cos', 
+                'y_sin', 
+                'y_cos', 
+                'x_pos', 
+                'y_pos', 
+                'ids_x', 
+                'ids_y',
+                'ids_z',]
     
     if SER_HTR:
         ser_htr = serial.Serial(port=SER_HTR, 
