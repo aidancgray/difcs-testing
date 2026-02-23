@@ -78,6 +78,7 @@ class MagSensor():
                         return None
                     else:
                         return rcv_dec
+            n-=1
             print(f"serial_send(): while loop n={n}")
         return None
 
