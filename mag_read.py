@@ -48,20 +48,38 @@ class MagSensor():
         ser_mag.reset_input_buffer()
         return ser_mag
     
+    # def serial_send(self, msg):
+    #     self.serial.write(msg.encode('utf-8'))
+    #     rcv = '\0'
+    #     while rcv[0] != "$":
+    #         rcv_raw = self.serial.readline()
+    #         try:
+    #             rcv_tmp = rcv_raw.decode('utf-8')
+    #         except UnicodeDecodeError as ex:
+    #             print(f"{ex}: {rcv_raw}")
+    #             return None
+    #         else:
+    #             rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
+    #     return rcv
+
     def serial_send(self, msg):
         self.serial.write(msg.encode('utf-8'))
-        rcv = '\0'
-        while rcv[0] != "$":
+        
+        rcv_raw = '\0'
+        n = 5
+        while (n > 0):
             rcv_raw = self.serial.readline()
-            try:
-                rcv_tmp = rcv_raw.decode('utf-8')
-            except UnicodeDecodeError as ex:
-                print(f"{ex}: {rcv_raw}")
-                return None
-            else:
-                rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
-        return rcv
-    
+            if rcv_raw[0] == '\x24':  # \x24 == $
+                try:
+                    rcv_dec = rcv_raw.decode('utf-8')
+                except UnicodeDecodeError as ex:
+                    print(f"{ex}: {rcv_raw}")
+                    return None
+                else:
+                    return rcv_dec
+            print(f"serial_send(): while loop n={n}")
+        return None
+
     def set_op(self, channel, output):
         msg = f'~D0,sManOP,{channel},{output}\n'
         resp = self.serial_send(msg)
@@ -235,6 +253,7 @@ class MagSensor():
         
         while not resp:
             resp = self.serial_send(cmd)
+            print("get_telemetry(): \"while not resp\"")
             time.sleep(1)
         
         resp = resp[4:-8]
