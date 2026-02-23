@@ -70,7 +70,8 @@ class MagSensor():
         while (n > 0):
             rcv_raw = self.serial.readline()
             if len(rcv_raw) > 0:
-                if rcv_raw[0] == '\x24':  # \x24 == $
+                # print(rcv_raw)
+                if rcv_raw[0] == 36:  # 36 == '$'
                     try:
                         rcv_dec = rcv_raw.decode('utf-8')
                     except UnicodeDecodeError as ex:
@@ -255,8 +256,9 @@ class MagSensor():
         
         while not resp:
             resp = self.serial_send(cmd)
-            print("get_telemetry(): \"while not resp\"")
-            time.sleep(1)
+            if not resp:
+                print("get_telemetry(): \"while not resp\"")
+                time.sleep(1)
         
         resp = resp[4:-8]
         resp_list = [x for x in resp.split(';') if x]
