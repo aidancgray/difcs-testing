@@ -1,5 +1,6 @@
 import os
 import sys
+import time
 import serial
 import socket
 from serial.serialutil import EIGHTBITS, PARITY_NONE, STOPBITS_ONE
@@ -234,6 +235,7 @@ class MagSensor():
         
         while not resp:
             resp = self.serial_send(cmd)
+            time.sleep(1)
         
         resp = resp[4:-8]
         resp_list = [x for x in resp.split(';') if x]
