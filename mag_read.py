@@ -69,14 +69,15 @@ class MagSensor():
         n = 5
         while (n > 0):
             rcv_raw = self.serial.readline()
-            if rcv_raw[0] == '\x24':  # \x24 == $
-                try:
-                    rcv_dec = rcv_raw.decode('utf-8')
-                except UnicodeDecodeError as ex:
-                    print(f"{ex}: {rcv_raw}")
-                    return None
-                else:
-                    return rcv_dec
+            if len(rcv_raw) > 0:
+                if rcv_raw[0] == '\x24':  # \x24 == $
+                    try:
+                        rcv_dec = rcv_raw.decode('utf-8')
+                    except UnicodeDecodeError as ex:
+                        print(f"{ex}: {rcv_raw}")
+                        return None
+                    else:
+                        return rcv_dec
             print(f"serial_send(): while loop n={n}")
         return None
 
