@@ -9,6 +9,10 @@ from mag_read import MagSensor
 import IDSlib.IDS as IDS
 from lakeshore import Model336
 
+SP_MAX   =  160
+SP_MIN   = -160
+SP_STEP  =   10
+SP_TIMER =   29
 
 FLIP_CHANNELS = True
 GET_COUNTS = True
@@ -29,19 +33,20 @@ else:
     SER_MAG = 'COM3'
     SER_HTR = 'COM10'
 
-DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
-
-if len(sys.argv) != 2:
-    # sys.exit('NO CHANNEL SPECIFIED')
+if len(sys.argv) < 2:
     CHANNEL = 1
 else:
     CHANNEL = int(sys.argv[1])
 
-SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  130,  140,  150,  140,  130,  120,  110,  100,  90,  80,  70,  60,  50,  40,  30,  20,  10, 0, 
-                 -10, -20, -30, -40, -50, -60, -70, -80, -90, -100, -110, -120, -130, -140, -150, -140, -130, -120, -110, -100, -90, -80, -70, -60, -50, -40, -30, -20, -10, 0] 
-# SETPOINT_LIST = [ 10,  20,  30,  40,  50,  60,  70,  80,  90,  100,  110,  120,  110,  100,  90,  80,  70,  60,  50,  40,  30,  20,  10, 0]
-# SETPOINT_LIST = [ 10, 20, 30, 40, 50, 60, 70,10, 0]
-SETPOINT_TIMER = 29
+DEBUG = sys.argv[2] if len(sys.argv) > 2 else None
+
+SETPOINT_LIST = [] 
+for i in range(        SP_STEP, SP_MAX+SP_STEP,  SP_STEP ):
+    SETPOINT_LIST.append(i)
+for j in range( SP_MAX-SP_STEP, SP_MIN-SP_STEP, -SP_STEP ):
+    SETPOINT_LIST.append(j)
+for k in range( SP_MIN+SP_STEP,        SP_STEP,  SP_STEP ):
+    SETPOINT_LIST.append(k)
 
 def setpoint_increment(channel):
     global sp_incr
@@ -55,7 +60,7 @@ def setpoint_increment(channel):
 
 def setpoint_timer(channel):
     global sp_timer
-    if sp_timer == SETPOINT_TIMER:
+    if sp_timer == SP_TIMER:
         sp_timer = 0
         new_sp = setpoint_increment(channel)
         return new_sp
@@ -161,14 +166,12 @@ if __name__ == "__main__":
     sp_timer = 0
     setpoint = 0
 
-    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}.csv"
+    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}_{DEBUG}.csv"
     if FLIP_CHANNELS:
         header = ['time',
-                  'temp_htr', 
-                  'temp_a', 
-                  'temp_b', 
-                  'temp_c', 
-                  'temp_d', 
+                  'setpoint', 
+                  'dac_y', 
+                  'dac_x', 
                   'y_sin', 
                   'y_cos', 
                   'x_sin', 
@@ -185,11 +188,9 @@ if __name__ == "__main__":
                   'ids_z_0',]
     else:
         header = ['time',
-                  'temp_htr', 
-                  'temp_a', 
-                  'temp_b', 
-                  'temp_c', 
-                  'temp_d', 
+                  'setpoint', 
+                  'dac_x', 
+                  'dac_y', 
                   'x_sin', 
                   'x_cos', 
                   'y_sin', 
