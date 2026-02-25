@@ -9,8 +9,8 @@ from mag_read import MagSensor
 import IDSlib.IDS as IDS
 from lakeshore import Model336
 
-SP_MAX   =  160
-SP_MIN   = -160
+SP_MAX   =  200
+SP_MIN   = -200
 SP_STEP  =   10
 SP_TIMER =   29
 
@@ -47,6 +47,14 @@ for j in range( SP_MAX-SP_STEP, SP_MIN-SP_STEP, -SP_STEP ):
     SETPOINT_LIST.append(j)
 for k in range( SP_MIN+SP_STEP,        SP_STEP,  SP_STEP ):
     SETPOINT_LIST.append(k)
+
+print(f'Setpoint Offsets: {SETPOINT_LIST}')
+
+if input("(S)tart | (Q)uit").upper == "Q":
+    print("closing...")
+    sys.exit(0)
+else:
+    print("starting...")
 
 def setpoint_increment(channel):
     global sp_incr
