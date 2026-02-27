@@ -9,10 +9,13 @@ from mag_read import MagSensor
 import IDSlib.IDS as IDS
 from lakeshore import Model336
 
+
 SP_MAX   =  200
 SP_MIN   = -200
 SP_STEP  =   10
 SP_TIMER =   29
+
+LOOPS = 4
 
 FLIP_CHANNELS = True
 GET_COUNTS = True
@@ -50,15 +53,12 @@ for k in range( SP_MIN+SP_STEP,        SP_STEP,  SP_STEP ):
 
 print(f'Setpoint Offsets: {SETPOINT_LIST}')
 
-if input("(S)tart | (Q)uit").upper == "Q":
-    print("closing...")
-    sys.exit(0)
-else:
-    print("starting...")
-
 def setpoint_increment(channel):
     global sp_incr
+    global loop
     if sp_incr >= len(SETPOINT_LIST):
+        loop+=1
+        print(f"--- LOOP {loop} START ---")
         sp_incr = 0
     new_sp_offset = SETPOINT_LIST[sp_incr]    
     new_sp = new_sp_offset + [start_x_pos, start_y_pos][chn-1]
@@ -173,6 +173,7 @@ if __name__ == "__main__":
     sp_incr = 0
     sp_timer = 0
     setpoint = 0
+    loop = 0
 
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}_{DEBUG}.csv"
     if FLIP_CHANNELS:
@@ -240,7 +241,12 @@ if __name__ == "__main__":
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
-
+    if input("(S)tart | (Q)uit: ").upper == "Q":
+        print("closing...")
+        sys.exit(0)
+    else:
+        print("starting...")
+    
     # Get starting values
     start_time = dt.datetime.now()
     
@@ -265,7 +271,7 @@ if __name__ == "__main__":
     data_count = 0
     time_start = time.perf_counter()
     try:
-        while True:
+        while loop < LOOPS:
             resp = dataLoop()
             time.sleep(DATA_RATE/1000)
     except KeyboardInterrupt:
