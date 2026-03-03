@@ -8,21 +8,32 @@ from serial.serialutil import SEVENBITS, PARITY_ODD, STOPBITS_ONE
 from mag_read import MagSensor
 import IDSlib.IDS as IDS
 from lakeshore import Model336
+import math
 
 
+#####################################################################
 RADIUS = 50   # um
-D_RADIUS = 1  # um
+D_RADIUS = .05  # um
 SPEED = 2.5   # deg/min
+LOOPS = 4
 
+STEP_RAD = 2 * math.acos(1-D_RADIUS/RADIUS)
+STEP_SIZE = math.trunc(math.degrees(STEP_RAD))
 
+while (0 != (360 % STEP_SIZE)) and (1 < STEP_SIZE):
+    STEP_SIZE-=1
+
+TIMER = STEP_SIZE / ( SPEED / 60 )
 SETPOINT_LIST = []
 
-SP_MAX   =  200
-SP_MIN   = -200
-SP_STEP  =   10
-SP_TIMER =   29
+for step in range(0, 360, STEP_SIZE):
+    x = math.cos(math.radians(step)) * RADIUS
+    y = math.sin(math.radians(step)) * RADIUS
+    SETPOINT_LIST.append((step,x,y))
 
-LOOPS = 4
+print(f"Coordinate List: {SETPOINT_LIST}")
+
+#####################################################################
 
 FLIP_CHANNELS = True
 GET_COUNTS = True
@@ -43,15 +54,9 @@ else:
     SER_MAG = 'COM3'
     SER_HTR = 'COM10'
 
-if len(sys.argv) < 2:
-    CHANNEL = 1
-else:
-    CHANNEL = int(sys.argv[1])
+DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 
-DEBUG = sys.argv[2] if len(sys.argv) > 2 else None
-
-
-def setpoint_increment(channel):
+def setpoint_increment():
     global sp_incr
     global loop
     if sp_incr >= len(SETPOINT_LIST):
@@ -59,25 +64,26 @@ def setpoint_increment(channel):
         print(f"--- LOOP {loop} START ---")
         sp_incr = 0
     new_sp_offset = SETPOINT_LIST[sp_incr]    
-    new_sp = new_sp_offset + [start_x_pos, start_y_pos][chn-1]
-    difcs.set_sp(channel, new_sp)
+    
+    if FLIP_CHANNELS:
+        new_sp_x = new_sp_offset[1] + start_y_pos
+        new_sp_y = new_sp_offset[2] + start_x_pos
+        difcs.set_sp(1, new_sp_y)
+        difcs.set_sp(2, new_sp_x)
+    else:
+        new_sp_x = new_sp_offset[1] + start_x_pos
+        new_sp_y = new_sp_offset[2] + start_y_pos
+        difcs.set_sp(1, new_sp_x)
+        difcs.set_sp(2, new_sp_y)
+    
     sp_incr+=1
     return new_sp_offset
 
-def setpoint_timer(channel):
-    global sp_timer
-    if sp_timer == SP_TIMER:
-        sp_timer = 0
-        new_sp = setpoint_increment(channel)
-        return new_sp
-    else:
-        sp_timer+=1
-        return None
-
 def dataLoop():
-    global chn
-    global setpoint
+    global setpoint_x
+    global setpoint_y
     global data_count
+    global sp_timer
 
     # Get temp and position data
     temp_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0  # noqa: F841
@@ -112,10 +118,12 @@ def dataLoop():
             ids_z_0 =   abs_3_um - (float(start_3) /  1000000)
 
             # Add x and y to lists
-            meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
+            temp_time = dt.datetime.now()
+            meas_time = float("{0:.3f}".format((temp_time - start_time).total_seconds()))
             
             data_tmp = [meas_time,
-                        setpoint,
+                        setpoint_x,
+                        setpoint_y,
                         dac_x,
                         dac_y, 
                         mag_x_sin,
@@ -140,10 +148,14 @@ def dataLoop():
         except ValueError:
             return None
         
-        sp_ret = setpoint_timer(chn)
-        if sp_ret is not None:
-            print(f"   {chn}: {sp_ret}um")
-            setpoint = sp_ret
+        if TIMER <= (temp_time - sp_timer).total_seconds():
+            sp_ret = setpoint_increment()
+            sp_timer = temp_time
+
+            if sp_ret is not None:
+                print(f"{sp_ret}")
+                setpoint_x = sp_ret[1]
+                setpoint_y = sp_ret[2]
         
         return data_count
 
@@ -167,16 +179,17 @@ def get_Lakeshore_temp(ser):
         return ls_temp
 
 if __name__ == "__main__":
-    chn = CHANNEL
     sp_incr = 0
-    sp_timer = 0
-    setpoint = 0
+    sp_timer = dt.datetime.now()
+    setpoint_x = 0
+    setpoint_y = 0
     loop = 0
 
-    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}_{DEBUG}.csv"
+    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_circle_{RADIUS}_{DEBUG}.csv"
     if FLIP_CHANNELS:
         header = ['time',
-                  'setpoint', 
+                  'setpoint_y', 
+                  'setpoint_x', 
                   'dac_y', 
                   'dac_x', 
                   'y_sin', 
@@ -192,10 +205,12 @@ if __name__ == "__main__":
                   'mag_x_0',
                   'ids_x_0',
                   'ids_y_0',
-                  'ids_z_0',]
+                  'ids_z_0',
+                ]
     else:
         header = ['time',
-                  'setpoint', 
+                  'setpoint_x', 
+                  'setpoint_y', 
                   'dac_x', 
                   'dac_y', 
                   'x_sin', 
@@ -211,7 +226,8 @@ if __name__ == "__main__":
                   'mag_y_0',
                   'ids_x_0',
                   'ids_y_0',
-                  'ids_z_0',]
+                  'ids_z_0',
+                  ]
     
     if (SER_HTR and GET_TEMPS):
         ser_htr = serial.Serial(port=SER_HTR, 
@@ -239,7 +255,7 @@ if __name__ == "__main__":
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
-    if input("(S)tart | (Q)uit: ").upper == "Q":
+    if input("(S)tart | (Q)uit: ").upper() == "Q":
         print("closing...")
         sys.exit(0)
     else:
@@ -254,17 +270,17 @@ if __name__ == "__main__":
     (warningNo, start_1, start_2, start_3) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
     
     print(difcs.get_telemetry())
-    print(difcs.get_telemetry())
-    print(difcs.get_telemetry())
     difcs_msg = difcs.get_telemetry()
     print(difcs_msg)
     start_x_pos = difcs_msg["x_pos"]
     start_y_pos = difcs_msg["y_pos"]
     
-    init_sp = [start_x_pos, start_y_pos][chn-1]
+    init_sp = (start_x_pos, start_y_pos)
     print(f"start position setpoint:{init_sp}")
-    difcs.set_sp(chn, init_sp)
-    difcs.set_ChMode(chn, 'MAGSNS')
+    difcs.set_sp(1, init_sp[0])
+    difcs.set_sp(2, init_sp[1])
+    difcs.set_ChMode(1, 'MAGSNS')
+    difcs.set_ChMode(2, 'MAGSNS')
 
     data_count = 0
     time_start = time.perf_counter()
