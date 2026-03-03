@@ -241,7 +241,7 @@ if __name__ == "__main__":
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
-    if input("(S)tart | (Q)uit: ").upper == "Q":
+    if input("(S)tart | (Q)uit: ").upper() == "Q":
         print("closing...")
         sys.exit(0)
     else:
