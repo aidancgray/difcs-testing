@@ -56,6 +56,8 @@ else:
 
 DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
 
+#####################################################################
+
 def setpoint_increment():
     global sp_incr
     global loop
@@ -68,13 +70,21 @@ def setpoint_increment():
     if FLIP_CHANNELS:
         new_sp_x = new_sp_offset[1] + start_y_pos
         new_sp_y = new_sp_offset[2] + start_x_pos
-        difcs.set_sp(1, new_sp_y)
-        difcs.set_sp(2, new_sp_x)
+        if DEBUG == 'test':
+            print(f"set_sp(1, {new_sp_y})")
+            print(f"set_sp(2, {new_sp_x})")
+        else:
+            difcs.set_sp(1, new_sp_y)
+            difcs.set_sp(2, new_sp_x)
     else:
         new_sp_x = new_sp_offset[1] + start_x_pos
         new_sp_y = new_sp_offset[2] + start_y_pos
-        difcs.set_sp(1, new_sp_x)
-        difcs.set_sp(2, new_sp_y)
+        if DEBUG == 'test':
+            print(f"set_sp(1, {new_sp_x})")
+            print(f"set_sp(2, {new_sp_y})")
+        else:
+            difcs.set_sp(1, new_sp_x)
+            difcs.set_sp(2, new_sp_y)
     
     sp_incr+=1
     return new_sp_offset
@@ -149,6 +159,7 @@ def dataLoop():
             return None
         
         if TIMER <= (temp_time - sp_timer).total_seconds():
+            # global sp_timer
             sp_ret = setpoint_increment()
             sp_timer = temp_time
 
