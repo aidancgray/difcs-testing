@@ -62,6 +62,25 @@ class MagSensor():
     #             rcv = rcv_tmp if len(rcv_tmp)>0 else '\0'
     #     return rcv
 
+    def serial_rcv(self):
+        rcv_raw = '\0'
+        n = 5
+        while (n > 0):
+            rcv_raw = self.serial.readline()
+            if len(rcv_raw) > 0:
+                # print(rcv_raw)
+                if rcv_raw[0] == 36:  # 36 == '$'
+                    try:
+                        rcv_dec = rcv_raw.decode('utf-8')
+                    except UnicodeDecodeError as ex:
+                        print(f"{ex}: {rcv_raw}")
+                        return None
+                    else:
+                        return rcv_dec
+            n-=1
+            print(f"serial_send(): while loop n={n}")
+        return None
+
     def serial_send(self, msg):
         self.serial.write(msg.encode('utf-8'))
         
@@ -246,6 +265,37 @@ class MagSensor():
         
         return data
     
+    def get_counts_adctest(self):
+        resp = None
+        while not resp:
+            resp = self.serial_rcv()
+            if not resp:
+                print("NO MSG RCVD")
+                time.sleep(1)
+        
+        resp = resp[2:]
+        resp_list = [x for x in resp.split(';') if x]
+
+        data = {}
+        for msg in resp_list:    
+            try:
+                msg_list = msg.split(',')
+            except UnicodeDecodeError:
+                print(msg)
+            else:
+                try:
+                    sin = msg_list[2]
+                    cos = msg_list[3]
+                    if msg_list[1] == '1':
+                        data["ch_0_sin"] = int(sin)
+                        data["ch_0_cos"] = int(cos)
+                    elif msg_list[1] == '2':
+                        data["ch_1_sin"] = int(sin)
+                        data["ch_1_cos"] = int(cos)
+                except IndexError:
+                    print(msg_list)
+        return data
+
     def get_telemetry(self):
         if self.mode == 'passive':
             return self.get_difcs_msg()
