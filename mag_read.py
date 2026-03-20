@@ -333,26 +333,26 @@ class MagSensor():
                         sin = msg_list[2]
                         cos = msg_list[3]
                         if msg_list[1] == '1':
-                            data["x_sin"] = int(sin)
-                            data["x_cos"] = int(cos)
+                            data["ch_0_sin"] = int(sin)
+                            data["ch_0_cos"] = int(cos)
                         elif msg_list[1] == '2':
-                            data["y_sin"] = int(sin)
-                            data["y_cos"] = int(cos)
+                            data["ch_1_sin"] = int(sin)
+                            data["ch_1_cos"] = int(cos)
                     
                     elif msg_list[0] == 'POS':
                         pos = msg_list[2]
                         if msg_list[1] == '1':
-                            data["x_pos"] = float(pos)
+                            data["ch_0_pos"] = float(pos)
                         elif msg_list[1] == '2':
-                            data["y_pos"] = float(pos)
+                            data["ch_1_pos"] = float(pos)
                     
                     elif msg_list[0] == 'OUT':
                         sign   = msg_list[2]
                         dacVal = msg_list[3]
                         if msg_list[1] == '1':
-                            data["x_out"] = int(sign+dacVal)
+                            data["ch_0_out"] = int(sign+dacVal)
                         elif msg_list[1] == '2':
-                            data["y_out"] = int(sign+dacVal)
+                            data["ch_1_out"] = int(sign+dacVal)
                 except IndexError:
                     print(msg_list)
         return data
