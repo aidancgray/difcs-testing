@@ -79,10 +79,10 @@ with ui.layout_columns(col_widths=[ 10, 2],):
             ch_1_cos_df = raw_df["ch_1_cos"].iloc[-1]
             
             df = pd.DataFrame(np.array([
-                ['CH 0 SIN', "{0:.3f}".format(ch_0_sin_df)],
-                ['CH 0 COS', "{0:.3f}".format(ch_0_cos_df)],
-                ['CH 1 SIN', "{0:.3f}".format(ch_1_sin_df)],
-                ['CH 1 COS', "{0:.3f}".format(ch_1_cos_df)],
+                ['ch0 sin', "{0:.0f}".format(ch_0_sin_df)],
+                ['ch0 cos', "{0:.0f}".format(ch_0_cos_df)],
+                ['ch1 sin', "{0:.0f}".format(ch_1_sin_df)],
+                ['ch1 cos', "{0:.0f}".format(ch_1_cos_df)],
             ]), columns=['KEY', 'VALUE'])    
             
             return df

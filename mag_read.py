@@ -266,34 +266,42 @@ class MagSensor():
         return data
     
     def get_counts_adctest(self):
-        resp = None
-        while not resp:
-            resp = self.serial_rcv()
-            if not resp:
-                print("NO MSG RCVD")
-                time.sleep(1)
-        
-        resp = resp[2:]
-        resp_list = [x for x in resp.split(';') if x]
-
         data = {}
-        for msg in resp_list:    
-            try:
-                msg_list = msg.split(',')
-            except UnicodeDecodeError:
-                print(msg)
-            else:
+        data["ch_0_sin"] = None
+        data["ch_0_cos"] = None
+        data["ch_1_sin"] = None
+        data["ch_1_cos"] = None
+
+        while None in data.values():
+            resp = None
+            while not resp:
+                resp = self.serial_rcv()
+                if not resp:
+                    print("NO MSG RCVD")
+                    time.sleep(1)
+            
+            resp = resp[2:-1]
+            resp_list = [x for x in resp.split(';') if x]
+    
+            for msg in resp_list:
+                # print(f"msg={msg}")    
                 try:
-                    sin = msg_list[2]
-                    cos = msg_list[3]
-                    if msg_list[1] == '1':
-                        data["ch_0_sin"] = int(sin)
-                        data["ch_0_cos"] = int(cos)
-                    elif msg_list[1] == '2':
-                        data["ch_1_sin"] = int(sin)
-                        data["ch_1_cos"] = int(cos)
-                except IndexError:
-                    print(msg_list)
+                    msg_list = msg.split(',')
+                except UnicodeDecodeError as e:
+                    print(f"UnicodeDecodeError: {e}\nmsg={msg}")
+                else:
+                    try:
+                        sin = msg_list[1]
+                        cos = msg_list[2]
+                        if msg_list[0] == '1':
+                            data["ch_0_sin"] = int(sin)
+                            data["ch_0_cos"] = int(cos)
+                        elif msg_list[0] == '2':
+                            data["ch_1_sin"] = int(sin)
+                            data["ch_1_cos"] = int(cos)
+                    except IndexError as e:
+                        # pass
+                        print(f"IndexError: {e}\nmsg_list={msg_list}")
         return data
 
     def get_telemetry(self):

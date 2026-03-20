@@ -7,7 +7,7 @@ from mag_read import MagSensor
 
 
 FLIP_CHANNELS = True
-DATA_ACQ_RATE = 1000
+DATA_ACQ_RATE = 50
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -41,8 +41,10 @@ def dataLoop():
             if (DEBUG != 'no-write'):
                 append_to_csv(dataFile, data_tmp)
             data_count+=1
+            # print(data_count)
     
-        except ValueError:
+        except ValueError as e:
+            print(f"ValueError: {e}")
             return None
 
 def append_to_csv(dataFile, data):
@@ -77,5 +79,6 @@ if __name__ == "__main__":
     finally:
         time_stop = time.perf_counter()
         print(f"{data_count} / {'{0:.2f}'.format(time_stop-time_start)}")
+        print(f"{'{0:.2f}'.format(data_count / (time_stop-time_start))} dps")
         print("closing")
         sys.exit(0)
