@@ -10,7 +10,7 @@ import IDSlib.IDS as IDS
 from lakeshore import Model336
 
 
-FLIP_CHANNELS = True
+FLIP_CHANNELS = False
 GET_COUNTS = True
 GET_MAG = True
 GET_IDS = True
@@ -40,15 +40,15 @@ def dataLoop():
 
     difcs_data = difcs.get_telemetry()
     if difcs_data:
-        mag_x_sin = difcs_data["x_sin"]
-        mag_x_cos = difcs_data["x_cos"]
-        mag_y_sin = difcs_data["y_sin"]
-        mag_y_cos = difcs_data["y_cos"]
-        mag_x_pos = difcs_data["x_pos"] 
-        mag_y_pos = difcs_data["y_pos"] 
+        ch_0_sin = difcs_data["ch_0_sin"]
+        ch_0_cos = difcs_data["ch_0_cos"]
+        ch_1_sin = difcs_data["ch_1_sin"]
+        ch_1_cos = difcs_data["ch_1_cos"]
+        ch_0_pos = difcs_data["ch_0_pos"] 
+        ch_1_pos = difcs_data["ch_1_pos"] 
 
-        mag_x_0 = mag_x_pos - start_x_pos
-        mag_y_0 = mag_y_pos - start_y_pos
+        ch_0_0 = ch_0_pos - start_0_pos
+        ch_1_0 = ch_1_pos - start_1_pos
 
         try:
             (warningNo, pos_1_pm, pos_2_pm, pos_3_pm) = ids.displacement.getAbsolutePositions() if GET_IDS else (None, 0, 0, 0)
@@ -69,17 +69,17 @@ def dataLoop():
                         temp_b,
                         temp_c,
                         temp_d,
-                        mag_x_sin,
-                        mag_x_cos,
-                        mag_y_sin,
-                        mag_y_cos,
-                        mag_x_pos,
-                        mag_y_pos,
+                        ch_0_sin,
+                        ch_0_cos,
+                        ch_1_sin,
+                        ch_1_cos,
+                        ch_0_pos,
+                        ch_1_pos,
                         abs_1_um,
                         abs_2_um,
                         abs_3_um,
-                        mag_x_0,
-                        mag_y_0,
+                        ch_0_0,
+                        ch_1_0,
                         ids_x_0,
                         ids_y_0,
                         ids_z_0,
@@ -112,48 +112,26 @@ def get_Lakeshore_temp(ser):
 
 if __name__ == "__main__":
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_mag_{DEBUG}.csv"
-    if FLIP_CHANNELS:
-        header = ['time',
-                  'temp_htr', 
-                  'temp_a', 
-                  'temp_b', 
-                  'temp_c', 
-                  'temp_d', 
-                  'y_sin', 
-                  'y_cos', 
-                  'x_sin', 
-                  'x_cos', 
-                  'y_pos', 
-                  'x_pos', 
-                  'ids_x', 
-                  'ids_y',
-                  'ids_z',
-                  'mag_y_0',
-                  'mag_x_0',
-                  'ids_x_0',
-                  'ids_y_0',
-                  'ids_z_0',]
-    else:
-        header = ['time',
-                  'temp_htr', 
-                  'temp_a', 
-                  'temp_b', 
-                  'temp_c', 
-                  'temp_d', 
-                  'x_sin', 
-                  'x_cos', 
-                  'y_sin', 
-                  'y_cos', 
-                  'x_pos', 
-                  'y_pos', 
-                  'ids_x', 
-                  'ids_y',
-                  'ids_z',
-                  'mag_x_0',
-                  'mag_y_0',
-                  'ids_x_0',
-                  'ids_y_0',
-                  'ids_z_0',]
+    header = ['time',
+              'temp_htr', 
+              'temp_a', 
+              'temp_b', 
+              'temp_c', 
+              'temp_d', 
+              'ch_0_sin', 
+              'ch_0_cos', 
+              'ch_1_sin', 
+              'ch_1_cos', 
+              'ch_0_pos', 
+              'ch_1_pos', 
+              'ids_x', 
+              'ids_y',
+              'ids_z',
+              'ch_0_0',
+              'ch_1_0',
+              'ids_x_0',
+              'ids_y_0',
+              'ids_z_0',]
     
     if SER_HTR:
         ser_htr = serial.Serial(port=SER_HTR, 
@@ -194,8 +172,8 @@ if __name__ == "__main__":
     print(difcs.get_telemetry())
     difcs_msg = difcs.get_telemetry()
     print(difcs_msg)
-    start_x_pos = difcs_msg["x_pos"]
-    start_y_pos = difcs_msg["y_pos"]
+    start_0_pos = difcs_msg["ch_0_pos"]
+    start_1_pos = difcs_msg["ch_1_pos"]
     
     data_count = 0
     time_start = time.perf_counter()

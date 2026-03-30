@@ -51,19 +51,19 @@ with ui.layout_columns(col_widths=[ 10, 2],):
 
             raw_df = data_df()
             t = raw_df["time"]
-            x_pos = raw_df["mag_x_0"]
-            y_pos = raw_df["mag_y_0"]
+            ch_0_pos = raw_df["ch_0_0"]
+            ch_1_pos = raw_df["ch_1_0"]
             ids_x = raw_df["ids_x_0"]
             ids_y = raw_df["ids_y_0"]
 
             t = t[-DATA_LIMIT:]
-            x_pos = x_pos[-DATA_LIMIT:]
-            y_pos = y_pos[-DATA_LIMIT:]
+            ch_0_pos = ch_0_pos[-DATA_LIMIT:]
+            ch_1_pos = ch_1_pos[-DATA_LIMIT:]
             ids_x = ids_x[-DATA_LIMIT:]
             ids_y = ids_y[-DATA_LIMIT:]
 
-            l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-            l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
+            l_xp,    = ax1.plot(t, ch_0_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
+            l_yp,    = ax1.plot(t, ch_1_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
             
             l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
             l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
@@ -74,30 +74,30 @@ with ui.layout_columns(col_widths=[ 10, 2],):
         @render.data_frame
         def df():
             raw_df = data_df()
-            x_pos_df = raw_df["mag_x_0"].iloc[-1]
-            y_pos_df = raw_df["mag_y_0"].iloc[-1]
+            ch_0_pos_df = raw_df["ch_0_0"].iloc[-1]
+            ch_1_pos_df = raw_df["ch_1_0"].iloc[-1]
             x_ids_df = raw_df["ids_x_0"].iloc[-1]
             y_ids_df = raw_df["ids_y_0"].iloc[-1]
             try:
                 sp_df    = raw_df["setpoint"].iloc[-1]
-                dac_x_df    = raw_df["dac_x"].iloc[-1]
-                dac_y_df    = raw_df["dac_y"].iloc[-1]
+                dac_0_df    = raw_df["dac_0"].iloc[-1]
+                dac_1_df    = raw_df["dac_1"].iloc[-1]
             except:  # noqa: E722
                 df = pd.DataFrame(np.array([
-                    ['MAG X', "{0:.3f}".format(x_pos_df)],
+                    ['MAG 0', "{0:.3f}".format(ch_0_pos_df)],
                     ['IDS X', "{0:.3f}".format(x_ids_df)],
-                    ['MAG Y', "{0:.3f}".format(y_pos_df)],
+                    ['MAG 1', "{0:.3f}".format(ch_1_pos_df)],
                     ['IDS Y', "{0:.3f}".format(y_ids_df)],
                 ]), columns=['KEY', 'VALUE'])    
             else:
                 df = pd.DataFrame(np.array([
                     ['SETPOINT', "{0:.3f}".format(sp_df)],
-                    ['DAC X', dac_x_df],
-                    ['MAG X', "{0:.3f}".format(x_pos_df)],
+                    ['DAC 0', dac_0_df],
+                    ['MAG 0', "{0:.3f}".format(ch_0_pos_df)],
                     ['IDS X', "{0:.3f}".format(x_ids_df)],
-                    ['MAG Y', "{0:.3f}".format(y_pos_df)],
+                    ['DAC 0', dac_1_df],
+                    ['MAG 1', "{0:.3f}".format(ch_1_pos_df)],
                     ['IDS Y', "{0:.3f}".format(y_ids_df)],
-                    ['DAC Y', dac_y_df],
                 ]), columns=['KEY', 'VALUE'])
             
             return df
