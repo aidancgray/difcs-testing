@@ -19,7 +19,6 @@ LOOPS = 4
 
 STEP_RAD = 2 * math.acos(1-D_RADIUS/RADIUS)
 STEP_SIZE = math.trunc(math.degrees(STEP_RAD))
-
 while (0 != (360 % STEP_SIZE)) and (1 < STEP_SIZE):
     STEP_SIZE-=1
 
@@ -31,11 +30,10 @@ for step in range(0, 360, STEP_SIZE):
     y = math.sin(math.radians(step)) * RADIUS
     SETPOINT_LIST.append((step,x,y))
 
-print(f"Coordinate List: {SETPOINT_LIST}")
-
+print(f"Coordinate List: {len(SETPOINT_LIST)}")
 #####################################################################
 
-FLIP_CHANNELS = True
+FLIP_CHANNELS = False
 GET_COUNTS = True
 GET_MAG = True
 GET_IDS = True
@@ -67,31 +65,21 @@ def setpoint_increment():
         sp_incr = 0
     new_sp_offset = SETPOINT_LIST[sp_incr]    
     
-    if FLIP_CHANNELS:
-        new_sp_x = new_sp_offset[1] + start_y_pos
-        new_sp_y = new_sp_offset[2] + start_x_pos
-        if DEBUG == 'test':
-            print(f"set_sp(1, {new_sp_y})")
-            print(f"set_sp(2, {new_sp_x})")
-        else:
-            difcs.set_sp(1, new_sp_y)
-            difcs.set_sp(2, new_sp_x)
+    new_sp_0 = new_sp_offset[1] + start_0_pos
+    new_sp_1 = new_sp_offset[2] + start_1_pos
+    if DEBUG == 'test':
+        print(f"set_sp(1, {new_sp_0})")
+        print(f"set_sp(2, {new_sp_1})")
     else:
-        new_sp_x = new_sp_offset[1] + start_x_pos
-        new_sp_y = new_sp_offset[2] + start_y_pos
-        if DEBUG == 'test':
-            print(f"set_sp(1, {new_sp_x})")
-            print(f"set_sp(2, {new_sp_y})")
-        else:
-            difcs.set_sp(1, new_sp_x)
-            difcs.set_sp(2, new_sp_y)
+        difcs.set_sp(1, new_sp_0)
+        difcs.set_sp(2, new_sp_1)
     
     sp_incr+=1
     return new_sp_offset
 
 def dataLoop():
-    global setpoint_x
-    global setpoint_y
+    global setpoint_ch_0
+    global setpoint_ch_1
     global data_count
     global sp_timer
 
@@ -99,22 +87,22 @@ def dataLoop():
     temp_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0  # noqa: F841
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4] if GET_TEMPS else (0,0,0,0)
 
-    dac_x = 0
-    dac_y = 0
+    dac_0 = 0
+    dac_1 = 0
     
     difcs_data = difcs.get_telemetry()
     if difcs_data:
-        mag_x_sin = difcs_data["x_sin"]
-        mag_x_cos = difcs_data["x_cos"]
-        mag_y_sin = difcs_data["y_sin"]
-        mag_y_cos = difcs_data["y_cos"]
-        mag_x_pos = difcs_data["x_pos"]
-        mag_y_pos = difcs_data["y_pos"]
-        dac_x     = difcs_data["x_out"]
-        dac_y     = difcs_data["y_out"]
+        mag_0_sin = difcs_data["ch_0_sin"]
+        mag_0_cos = difcs_data["ch_0_cos"]
+        mag_1_sin = difcs_data["ch_1_sin"]
+        mag_1_cos = difcs_data["ch_1_cos"]
+        mag_0_pos = difcs_data["ch_0_pos"]
+        mag_1_pos = difcs_data["ch_1_pos"]
+        dac_0     = difcs_data["ch_0_out"]
+        dac_1     = difcs_data["ch_1_out"]
 
-        mag_x_0 = mag_x_pos - start_x_pos
-        mag_y_0 = mag_y_pos - start_y_pos
+        mag_0_0 = mag_0_pos - start_0_pos
+        mag_1_0 = mag_1_pos - start_1_pos
 
 
         try:
@@ -132,21 +120,21 @@ def dataLoop():
             meas_time = float("{0:.3f}".format((temp_time - start_time).total_seconds()))
             
             data_tmp = [meas_time,
-                        setpoint_x,
-                        setpoint_y,
-                        dac_x,
-                        dac_y, 
-                        mag_x_sin,
-                        mag_x_cos,
-                        mag_y_sin,
-                        mag_y_cos,
-                        mag_x_pos,
-                        mag_y_pos,
+                        setpoint_ch_0,
+                        setpoint_ch_1,
+                        dac_0,
+                        dac_1, 
+                        mag_0_sin,
+                        mag_0_cos,
+                        mag_1_sin,
+                        mag_1_cos,
+                        mag_0_pos,
+                        mag_1_pos,
                         abs_1_um,
                         abs_2_um,
                         abs_3_um,
-                        mag_x_0,
-                        mag_y_0,
+                        mag_0_0,
+                        mag_1_0,
                         ids_x_0,
                         ids_y_0,
                         ids_z_0,
@@ -165,8 +153,8 @@ def dataLoop():
 
             if sp_ret is not None:
                 print(f"{sp_ret}")
-                setpoint_x = sp_ret[1]
-                setpoint_y = sp_ret[2]
+                setpoint_ch_0 = sp_ret[1]
+                setpoint_ch_1 = sp_ret[2]
         
         return data_count
 
@@ -192,54 +180,32 @@ def get_Lakeshore_temp(ser):
 if __name__ == "__main__":
     sp_incr = 0
     sp_timer = dt.datetime.now()
-    setpoint_x = 0
-    setpoint_y = 0
+    setpoint_ch_0 = 0
+    setpoint_ch_1 = 0
     loop = 0
 
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_circle_{RADIUS}_{DEBUG}.csv"
-    if FLIP_CHANNELS:
-        header = ['time',
-                  'setpoint_y', 
-                  'setpoint_x', 
-                  'dac_y', 
-                  'dac_x', 
-                  'y_sin', 
-                  'y_cos', 
-                  'x_sin', 
-                  'x_cos', 
-                  'y_pos', 
-                  'x_pos', 
-                  'ids_x', 
-                  'ids_y',
-                  'ids_z',
-                  'mag_y_0',
-                  'mag_x_0',
-                  'ids_x_0',
-                  'ids_y_0',
-                  'ids_z_0',
-                ]
-    else:
-        header = ['time',
-                  'setpoint_x', 
-                  'setpoint_y', 
-                  'dac_x', 
-                  'dac_y', 
-                  'x_sin', 
-                  'x_cos', 
-                  'y_sin', 
-                  'y_cos', 
-                  'x_pos', 
-                  'y_pos', 
-                  'ids_x', 
-                  'ids_y',
-                  'ids_z',
-                  'mag_x_0',
-                  'mag_y_0',
-                  'ids_x_0',
-                  'ids_y_0',
-                  'ids_z_0',
-                  ]
-    
+    header = ['time',
+              'setpoint_ch_0', 
+              'setpoint_ch_1', 
+              'dac_0', 
+              'dac_1', 
+              'ch_0_sin', 
+              'ch_0_cos', 
+              'ch_1_sin', 
+              'ch_1_cos', 
+              'ch_0_pos', 
+              'ch_1_pos', 
+              'ids_x', 
+              'ids_y',
+              'ids_z',
+              'mag_x_0',
+              'mag_y_0',
+              'ids_x_0',
+              'ids_y_0',
+              'ids_z_0',
+              ]
+  
     if (SER_HTR and GET_TEMPS):
         ser_htr = serial.Serial(port=SER_HTR, 
                                 baudrate=1200, 
@@ -283,10 +249,10 @@ if __name__ == "__main__":
     print(difcs.get_telemetry())
     difcs_msg = difcs.get_telemetry()
     print(difcs_msg)
-    start_x_pos = difcs_msg["x_pos"]
-    start_y_pos = difcs_msg["y_pos"]
+    start_0_pos = difcs_msg["ch_0_pos"]
+    start_1_pos = difcs_msg["ch_1_pos"]
     
-    init_sp = (start_x_pos, start_y_pos)
+    init_sp = (start_0_pos, start_1_pos)
     print(f"start position setpoint:{init_sp}")
     difcs.set_sp(1, init_sp[0])
     difcs.set_sp(2, init_sp[1])
