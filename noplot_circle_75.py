@@ -12,10 +12,10 @@ import math
 
 
 #####################################################################
-RADIUS = 50   # um
+RADIUS = 75   # um
 D_RADIUS = .05  # um
 SPEED = 2.5   # deg/min
-LOOPS = 4
+LOOPS = 1
 
 STEP_RAD = 2 * math.acos(1-D_RADIUS/RADIUS)
 STEP_SIZE = math.trunc(math.degrees(STEP_RAD))
@@ -24,6 +24,9 @@ while (0 != (360 % STEP_SIZE)) and (1 < STEP_SIZE):
 
 TIMER = STEP_SIZE / ( SPEED / 60 )
 SETPOINT_LIST = []
+
+print(f"TIMER={TIMER}")
+print(f"STEP_SIZE={STEP_SIZE}")
 
 for step in range(0, 360, STEP_SIZE):
     x = math.cos(math.radians(step)) * RADIUS
@@ -147,7 +150,6 @@ def dataLoop():
             return None
         
         if TIMER <= (temp_time - sp_timer).total_seconds():
-            # global sp_timer
             sp_ret = setpoint_increment()
             sp_timer = temp_time
 
@@ -232,11 +234,13 @@ if __name__ == "__main__":
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
-    if input("(S)tart | (Q)uit: ").upper() == "Q":
-        print("closing...")
-        sys.exit(0)
-    else:
-        print("starting...")
+    # if input("(S)tart | (Q)uit: ").upper() == "Q":
+        # print("closing...")
+        # sys.exit(0)
+    # else:
+        # print("starting...")
+    
+    print("starting...")
     
     # Get starting values
     start_time = dt.datetime.now()
@@ -265,6 +269,9 @@ if __name__ == "__main__":
         while loop < LOOPS:
             resp = dataLoop()
             time.sleep(DATA_RATE/1000)
+        difcs.set_sp(1, start_0_pos)
+        difcs.set_sp(2, start_1_pos)
+        time.sleep(30)
     except KeyboardInterrupt:
         print("kb_int")
     finally:
