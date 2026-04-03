@@ -18,7 +18,7 @@ GET_OP = False
 GET_TEMPS = True
 
 IDS_IP = "172.16.1.198"
-DATA_ACQ_RATE = 1000
+DATA_ACQ_RATE = 400
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"

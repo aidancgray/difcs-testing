@@ -17,7 +17,7 @@ SP_TIMER =   29
 
 LOOPS = 4
 
-FLIP_CHANNELS = True
+FLIP_CHANNELS = False
 GET_COUNTS = True
 GET_MAG = True
 GET_IDS = True
@@ -60,8 +60,9 @@ def setpoint_increment(channel):
         loop+=1
         print(f"--- LOOP {loop} START ---")
         sp_incr = 0
-    new_sp_offset = SETPOINT_LIST[sp_incr]    
-    new_sp = new_sp_offset + [start_x_pos, start_y_pos][chn-1]
+    new_sp_offset = SETPOINT_LIST[sp_incr]
+
+    new_sp = new_sp_offset + [start_0_pos, start_1_pos][chn-1]
     difcs.set_sp(channel, new_sp)
     sp_incr+=1
     return new_sp_offset
@@ -85,22 +86,22 @@ def dataLoop():
     temp_htr = get_Lakeshore_temp(ser_htr) if (SER_HTR and GET_TEMPS) else 0  # noqa: F841
     temp_a, temp_b, temp_c, temp_d = ls_366.get_all_kelvin_reading()[:4] if GET_TEMPS else (0,0,0,0)
 
-    dac_x = 0
-    dac_y = 0
+    dac_0 = 0
+    dac_1 = 0
     
     difcs_data = difcs.get_telemetry()
     if difcs_data:
-        mag_x_sin = difcs_data["x_sin"]
-        mag_x_cos = difcs_data["x_cos"]
-        mag_y_sin = difcs_data["y_sin"]
-        mag_y_cos = difcs_data["y_cos"]
-        mag_x_pos = difcs_data["x_pos"]
-        mag_y_pos = difcs_data["y_pos"]
-        dac_x     = difcs_data["x_out"]
-        dac_y     = difcs_data["y_out"]
+        mag_0_sin = difcs_data["ch_0_sin"]
+        mag_0_cos = difcs_data["ch_0_cos"]
+        mag_1_sin = difcs_data["ch_1_sin"]
+        mag_1_cos = difcs_data["ch_1_cos"]
+        mag_0_pos = difcs_data["ch_0_pos"]
+        mag_1_pos = difcs_data["ch_1_pos"]
+        dac_0     = difcs_data["ch_0_out"]
+        dac_1     = difcs_data["ch_1_out"]
 
-        mag_x_0 = mag_x_pos - start_x_pos
-        mag_y_0 = mag_y_pos - start_y_pos
+        mag_0_0 = mag_0_pos - start_0_pos
+        mag_1_0 = mag_1_pos - start_1_pos
 
 
         try:
@@ -117,20 +118,21 @@ def dataLoop():
             meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
             
             data_tmp = [meas_time,
-                        setpoint,
-                        dac_x,
-                        dac_y, 
-                        mag_x_sin,
-                        mag_x_cos,
-                        mag_y_sin,
-                        mag_y_cos,
-                        mag_x_pos,
-                        mag_y_pos,
+                        setpoint_ch_0,
+                        setpoint_ch_1,
+                        dac_0,
+                        dac_1, 
+                        mag_0_sin,
+                        mag_0_cos,
+                        mag_1_sin,
+                        mag_1_cos,
+                        mag_0_pos,
+                        mag_1_pos,
                         abs_1_um,
                         abs_2_um,
                         abs_3_um,
-                        mag_x_0,
-                        mag_y_0,
+                        mag_0_0,
+                        mag_1_0,
                         ids_x_0,
                         ids_y_0,
                         ids_z_0,
@@ -172,48 +174,31 @@ if __name__ == "__main__":
     chn = CHANNEL
     sp_incr = 0
     sp_timer = 0
-    setpoint = 0
+    setpoint_ch_0 = 0
+    setpoint_ch_1 = 0
     loop = 0
 
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}_{DEBUG}.csv"
-    if FLIP_CHANNELS:
-        header = ['time',
-                  'setpoint', 
-                  'dac_y', 
-                  'dac_x', 
-                  'y_sin', 
-                  'y_cos', 
-                  'x_sin', 
-                  'x_cos', 
-                  'y_pos', 
-                  'x_pos', 
-                  'ids_x', 
-                  'ids_y',
-                  'ids_z',
-                  'mag_y_0',
-                  'mag_x_0',
-                  'ids_x_0',
-                  'ids_y_0',
-                  'ids_z_0',]
-    else:
-        header = ['time',
-                  'setpoint', 
-                  'dac_x', 
-                  'dac_y', 
-                  'x_sin', 
-                  'x_cos', 
-                  'y_sin', 
-                  'y_cos', 
-                  'x_pos', 
-                  'y_pos', 
-                  'ids_x', 
-                  'ids_y',
-                  'ids_z',
-                  'mag_x_0',
-                  'mag_y_0',
-                  'ids_x_0',
-                  'ids_y_0',
-                  'ids_z_0',]
+    header = ['time',
+              'setpoint_ch_0', 
+              'setpoint_ch_1', 
+              'dac_0', 
+              'dac_1', 
+              'ch_0_sin', 
+              'ch_0_cos', 
+              'ch_1_sin', 
+              'ch_1_cos', 
+              'ch_0_pos', 
+              'ch_1_pos', 
+              'ids_x', 
+              'ids_y',
+              'ids_z',
+              'ch_0_0',
+              'ch_1_0',
+              'ids_x_0',
+              'ids_y_0',
+              'ids_z_0',
+              ]
     
     if (SER_HTR and GET_TEMPS):
         ser_htr = serial.Serial(port=SER_HTR, 
@@ -241,11 +226,13 @@ if __name__ == "__main__":
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
-    if input("(S)tart | (Q)uit: ").upper() == "Q":
-        print("closing...")
-        sys.exit(0)
-    else:
-        print("starting...")
+    # if input("(S)tart | (Q)uit: ").upper() == "Q":
+    #     print("closing...")
+    #     sys.exit(0)
+    # else:
+    #     print("starting...")
+    
+    print("starting...")
     
     # Get starting values
     start_time = dt.datetime.now()
@@ -260,10 +247,10 @@ if __name__ == "__main__":
     print(difcs.get_telemetry())
     difcs_msg = difcs.get_telemetry()
     print(difcs_msg)
-    start_x_pos = difcs_msg["x_pos"]
-    start_y_pos = difcs_msg["y_pos"]
+    start_0_pos = difcs_msg["ch_0_pos"]
+    start_1_pos = difcs_msg["ch_1_pos"]
     
-    init_sp = [start_x_pos, start_y_pos][chn-1]
+    init_sp = [start_0_pos, start_1_pos][chn-1]
     print(f"start position setpoint:{init_sp}")
     difcs.set_sp(chn, init_sp)
     difcs.set_ChMode(chn, 'MAGSNS')
@@ -274,6 +261,8 @@ if __name__ == "__main__":
         while loop < LOOPS:
             resp = dataLoop()
             time.sleep(DATA_RATE/1000)
+        difcs.set_sp(1, start_0_pos)
+        difcs.set_sp(2, start_1_pos)
     except KeyboardInterrupt:
         print("kb_int")
     finally:
