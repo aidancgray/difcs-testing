@@ -12,10 +12,10 @@ import math
 
 
 #####################################################################
-RADIUS = 75   # um
+RADIUS = sys.argv[1] if len(sys.argv) > 1 else 50
+LOOPS = sys.argv[2] if len(sys.argv) > 2 else 1
 D_RADIUS = .05  # um
 SPEED = 2.5   # deg/min
-LOOPS = 1
 
 STEP_RAD = 2 * math.acos(1-D_RADIUS/RADIUS)
 STEP_SIZE = math.trunc(math.degrees(STEP_RAD))
@@ -55,8 +55,6 @@ else:
     SER_MAG = 'COM3'
     SER_HTR = 'COM10'
 
-DEBUG = sys.argv[1] if len(sys.argv) > 1 else None
-
 #####################################################################
 
 def setpoint_increment():
@@ -70,12 +68,8 @@ def setpoint_increment():
     
     new_sp_0 = new_sp_offset[1] + start_0_pos
     new_sp_1 = new_sp_offset[2] + start_1_pos
-    if DEBUG == 'test':
-        print(f"set_sp(1, {new_sp_0})")
-        print(f"set_sp(2, {new_sp_1})")
-    else:
-        difcs.set_sp(1, new_sp_0)
-        difcs.set_sp(2, new_sp_1)
+    difcs.set_sp(1, new_sp_0)
+    difcs.set_sp(2, new_sp_1)
     
     sp_incr+=1
     return new_sp_offset
@@ -142,8 +136,7 @@ def dataLoop():
                         ids_y_0,
                         ids_z_0,
                         ]
-            if (DEBUG != 'no-write'):
-                append_to_csv(dataFile, data_tmp)
+            append_to_csv(dataFile, data_tmp)
             data_count+=1
             
         except ValueError:
@@ -186,7 +179,7 @@ if __name__ == "__main__":
     setpoint_ch_1 = 0
     loop = 0
 
-    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_circle_{RADIUS}_{DEBUG}.csv"
+    dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_circle_{RADIUS}.csv"
     header = ['time',
               'setpoint_ch_0', 
               'setpoint_ch_1', 
@@ -234,12 +227,6 @@ if __name__ == "__main__":
 
     print(f'dataFile: {dataFile}')
     append_to_csv(dataFile, header)
-    # if input("(S)tart | (Q)uit: ").upper() == "Q":
-        # print("closing...")
-        # sys.exit(0)
-    # else:
-        # print("starting...")
-    
     print("starting...")
     
     # Get starting values
