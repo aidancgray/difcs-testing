@@ -118,8 +118,7 @@ def dataLoop():
             meas_time = float("{0:.3f}".format((dt.datetime.now() - start_time).total_seconds()))
             
             data_tmp = [meas_time,
-                        setpoint_ch_0,
-                        setpoint_ch_1,
+                        setpoint,
                         dac_0,
                         dac_1, 
                         mag_0_sin,
@@ -174,14 +173,12 @@ if __name__ == "__main__":
     chn = CHANNEL
     sp_incr = 0
     sp_timer = 0
-    setpoint_ch_0 = 0
-    setpoint_ch_1 = 0
+    setpoint = 0
     loop = 0
 
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_pid_{chn}_{DEBUG}.csv"
     header = ['time',
-              'setpoint_ch_0', 
-              'setpoint_ch_1', 
+              'setpoint', 
               'dac_0', 
               'dac_1', 
               'ch_0_sin', 
