@@ -1,13 +1,7 @@
 #!/bin/bash
 
-python noplot_circle.py 25
+python noplot_circle.py 25 6
 sleep 10
-python noplot_circle.py 75
+python noplot_circle.py 50 6
 sleep 10
-python noplot_circle.py 50
-sleep 10
-python noplot_circle.py 25
-sleep 10
-python noplot_circle.py 75
-sleep 10
-python noplot_circle.py 50
+python noplot_circle.py 75 6

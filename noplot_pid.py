@@ -12,7 +12,7 @@ from lakeshore import Model336
 
 SP_MAX   =  200
 SP_MIN   = -200
-SP_STEP  =   10
+SP_STEP  =   20
 SP_TIMER =   29
 
 LOOPS = 4
