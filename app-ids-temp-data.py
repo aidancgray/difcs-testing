@@ -6,16 +6,21 @@ import matplotlib.pyplot as plt
 from collections import deque
 from io import StringIO
 from shiny import reactive
-from shiny.express import render, ui
+from shiny.express import render, ui, input
 from shiny.session import session_context
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
 else:
     DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
-DATA_LIMIT = 50
 data_dir = Path(DATA_PATH)
 data_file = max([f for f in data_dir.glob("*.csv")], key=lambda item: item.stat().st_ctime)
+
+DATA_LIMIT = 50
+
+zeros = {'x': 0, 
+         'y': 0, 
+         'z': 0}
 
 ui.page_opts(fillable=True)
 
@@ -51,9 +56,9 @@ with ui.layout_columns(col_widths=[ 10, 2],):
 
             raw_df = data_df()
             t = raw_df["time"]
-            ids_x = raw_df["ids_x_0"]
-            ids_y = raw_df["ids_y_0"]
-            ids_z = raw_df["ids_z_0"]
+            ids_x = raw_df["ids_x_0"] - zeros['x']
+            ids_y = raw_df["ids_y_0"] - zeros['y']
+            ids_z = raw_df["ids_z_0"] - zeros['z']
 
             t = t[-DATA_LIMIT:]
             ids_x = ids_x[-DATA_LIMIT:]
@@ -66,13 +71,24 @@ with ui.layout_columns(col_widths=[ 10, 2],):
         
             return fig
 
-    with ui.card():        
+    with ui.card():
+        ui.input_action_button("action_button", "ZERO AXES")
+        @render.text
+        @reactive.event(input.action_button)
+        def zero_axes():
+            global zeros
+            raw_df = data_df()
+            zeros['x'] = raw_df["ids_x_0"].iloc[-1]
+            zeros['y'] = raw_df["ids_y_0"].iloc[-1]
+            zeros['z'] = raw_df["ids_z_0"].iloc[-1] 
+            # return zeros
+
         @render.data_frame
         def df():
             raw_df = data_df()
-            x_ids_df = raw_df["ids_x_0"].iloc[-1]
-            y_ids_df = raw_df["ids_y_0"].iloc[-1]
-            z_ids_df = raw_df["ids_z_0"].iloc[-1]
+            x_ids_df = raw_df["ids_x_0"].iloc[-1] - zeros['x']
+            y_ids_df = raw_df["ids_y_0"].iloc[-1] - zeros['y']
+            z_ids_df = raw_df["ids_z_0"].iloc[-1] - zeros['z']
             try:
                 sp_df    = raw_df["setpoint"].iloc[-1]
                 dac_x_df    = raw_df["dac_x"].iloc[-1]
