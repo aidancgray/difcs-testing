@@ -15,14 +15,14 @@ import math
 RADIUS = sys.argv[1] if len(sys.argv) > 1 else 50
 LOOPS = sys.argv[2] if len(sys.argv) > 2 else 1
 D_RADIUS = .05  # um
-SPEED = 2.5   # deg/min
+SPEED = 2 # deg/s
 
 STEP_RAD = 2 * math.acos(1-D_RADIUS/float(RADIUS))
 STEP_SIZE = math.trunc(math.degrees(STEP_RAD))
 while (0 != (360 % STEP_SIZE)) and (1 < STEP_SIZE):
     STEP_SIZE-=1
 
-TIMER = STEP_SIZE / ( SPEED / 60 )
+TIMER = STEP_SIZE / SPEED
 SETPOINT_LIST = []
 
 print(f"TIMER={TIMER}")
@@ -44,7 +44,7 @@ GET_OP = True
 GET_TEMPS = False
 
 IDS_IP = "172.16.1.198"
-DATA_RATE = 400
+DATA_RATE = 300
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
@@ -253,6 +253,9 @@ if __name__ == "__main__":
     data_count = 0
     time_start = time.perf_counter()
     try:
+        difcs.set_sp(1, SETPOINT_LIST[0][1] + start_0_pos)
+        difcs.set_sp(2, SETPOINT_LIST[0][2] + start_1_pos)
+        time.sleep(10)
         while loop < int(LOOPS):
             resp = dataLoop()
             time.sleep(DATA_RATE/1000)
