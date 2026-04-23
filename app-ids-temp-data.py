@@ -65,10 +65,11 @@ with ui.layout_columns(col_widths=[ 10, 2],):
             ids_y = ids_y[-DATA_LIMIT:]
             ids_z = ids_z[-DATA_LIMIT:]
 
-            l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-            l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
-            l_ids_z, = ax1.plot(t, ids_z, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
-        
+            l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red', label='IDS X')
+            l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue', label='IDS Y')
+            l_ids_z, = ax1.plot(t, ids_z, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green', label='IDS Z')
+            ax1.legend(loc='upper right')
+
             return fig
 
     with ui.card():
@@ -81,7 +82,7 @@ with ui.layout_columns(col_widths=[ 10, 2],):
             zeros['x'] = raw_df["ids_x_0"].iloc[-1]
             zeros['y'] = raw_df["ids_y_0"].iloc[-1]
             zeros['z'] = raw_df["ids_z_0"].iloc[-1] 
-            # return zeros
+            return None
 
         @render.data_frame
         def df():

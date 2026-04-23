@@ -6,16 +6,23 @@ import matplotlib.pyplot as plt
 from collections import deque
 from io import StringIO
 from shiny import reactive
-from shiny.express import render, ui
+from shiny.express import render, ui, input
 from shiny.session import session_context
 
 if os.name == "posix":
     DATA_PATH = "/Users/aidancgray/Documents/MIRMOS/DiFCS/testdata/"
 else:
     DATA_PATH = "C:/Users/Aidan/Documents/MIRMOS/DIFCs_Testing/"
-DATA_LIMIT = 50
 data_dir = Path(DATA_PATH)
 data_file = max([f for f in data_dir.glob("*.csv")], key=lambda item: item.stat().st_ctime)
+
+DATA_LIMIT = 50
+
+zeros = {'mag_x': 0,
+         'mag_y': 0,
+         'ids_x': 0, 
+         'ids_y': 0, 
+         'ids_z': 0}
 
 ui.page_opts(fillable=True)
 
@@ -51,33 +58,50 @@ with ui.layout_columns(col_widths=[ 10, 2],):
 
             raw_df = data_df()
             t = raw_df["time"]
-            x_pos = raw_df["mag_x_0"]
-            y_pos = raw_df["mag_y_0"]
-            ids_x = raw_df["ids_x_0"]
-            ids_y = raw_df["ids_y_0"]
+            x_pos = raw_df["mag_x_0"] - zeros['mag_x']
+            y_pos = raw_df["mag_y_0"] - zeros['mag_y']
+            ids_x = raw_df["ids_x_0"] - zeros['ids_x']
+            ids_y = raw_df["ids_y_0"] - zeros['ids_y']
+            ids_z = raw_df["ids_z_0"] - zeros['ids_z']
 
             t = t[-DATA_LIMIT:]
             x_pos = x_pos[-DATA_LIMIT:]
             y_pos = y_pos[-DATA_LIMIT:]
             ids_x = ids_x[-DATA_LIMIT:]
             ids_y = ids_y[-DATA_LIMIT:]
+            ids_z = ids_z[-DATA_LIMIT:]
 
-            l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red')
-            l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue')
+            l_xp,    = ax1.plot(t, x_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='red', label='MAG X')
+            l_yp,    = ax1.plot(t, y_pos, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='blue', label='MAG Y')
             
-            l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange')
-            l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green')
-        
+            l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange', label='IDS X')
+            l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green', label='IDS Y')
+            l_ids_z, = ax1.plot(t, ids_z, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green', label='IDS Z')
+            ax1.legend(loc='upper right')
+            
             return fig
 
-    with ui.card():        
+    with ui.card():      
+        ui.input_action_button("action_button", "ZERO AXES")
+        @render.text
+        @reactive.event(input.action_button)
+        def zero_axes():
+            global zeros
+            raw_df = data_df()
+            zeros['mag_x'] = raw_df["mag_x_0"].iloc[-1]
+            zeros['mag_y'] = raw_df["mag_y_0"].iloc[-1]
+            zeros['ids_x'] = raw_df["ids_x_0"].iloc[-1]
+            zeros['ids_y'] = raw_df["ids_y_0"].iloc[-1]
+            zeros['ids_z'] = raw_df["ids_z_0"].iloc[-1] 
+            return None  
         @render.data_frame
         def df():
             raw_df = data_df()
-            x_pos_df = raw_df["mag_x_0"].iloc[-1]
-            y_pos_df = raw_df["mag_y_0"].iloc[-1]
-            x_ids_df = raw_df["ids_x_0"].iloc[-1]
-            y_ids_df = raw_df["ids_y_0"].iloc[-1]
+            x_pos_df = raw_df["mag_x_0"].iloc[-1] - zeros['mag_x'] 
+            y_pos_df = raw_df["mag_y_0"].iloc[-1] - zeros['mag_y']
+            x_ids_df = raw_df["ids_x_0"].iloc[-1] - zeros['ids_x']
+            y_ids_df = raw_df["ids_y_0"].iloc[-1] - zeros['ids_y']
+            z_ids_df = raw_df["ids_z_0"].iloc[-1] - zeros['ids_z']
             try:
                 sp_x_df    = raw_df["setpoint_x"].iloc[-1]
                 sp_y_df    = raw_df["setpoint_y"].iloc[-1]
@@ -89,6 +113,7 @@ with ui.layout_columns(col_widths=[ 10, 2],):
                     ['IDS X', "{0:.3f}".format(x_ids_df)],
                     ['MAG Y', "{0:.3f}".format(y_pos_df)],
                     ['IDS Y', "{0:.3f}".format(y_ids_df)],
+                    ['IDS Z', "{0:.3f}".format(z_ids_df)],
                 ]), columns=['KEY', 'VALUE'])    
             else:
                 df = pd.DataFrame(np.array([
@@ -100,6 +125,7 @@ with ui.layout_columns(col_widths=[ 10, 2],):
                     ['IDS X', "{0:.3f}".format(x_ids_df)],
                     ['MAG Y', "{0:.3f}".format(y_pos_df)],
                     ['IDS Y', "{0:.3f}".format(y_ids_df)],
+                    ['IDS Z', "{0:.3f}".format(z_ids_df)],
                 ]), columns=['KEY', 'VALUE'])
             
             return df
