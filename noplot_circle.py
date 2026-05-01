@@ -34,6 +34,8 @@ for step in range(0, 360+STEP_SIZE, STEP_SIZE):
     SETPOINT_LIST.append((step,x,y))
 
 print(f"Coordinate List: {len(SETPOINT_LIST)}")
+# print(f"Coordinate List: {SETPOINT_LIST}")
+# sys.exit()
 #####################################################################
 
 FLIP_CHANNELS = False
@@ -117,6 +119,7 @@ def dataLoop():
             meas_time = float("{0:.3f}".format((temp_time - start_time).total_seconds()))
             
             data_tmp = [meas_time,
+                        loop,
                         setpoint_ch_0,
                         setpoint_ch_1,
                         dac_0,
@@ -177,10 +180,11 @@ if __name__ == "__main__":
     sp_timer = dt.datetime.now()
     setpoint_ch_0 = 0
     setpoint_ch_1 = 0
-    loop = 0
+    loop = 1
 
     dataFile = f"{DATA_PATH}{dt.datetime.now().strftime('%d%m%Y_%H-%M-%S')}_circle_{RADIUS}.csv"
     header = ['time',
+              'run',
               'setpoint_ch_0', 
               'setpoint_ch_1', 
               'dac_0', 
@@ -256,7 +260,7 @@ if __name__ == "__main__":
         difcs.set_sp(1, SETPOINT_LIST[0][1] + start_0_pos)
         difcs.set_sp(2, SETPOINT_LIST[0][2] + start_1_pos)
         time.sleep(10)
-        while loop < int(LOOPS):
+        while loop <= int(LOOPS):
             resp = dataLoop()
             time.sleep(DATA_RATE/1000)
         difcs.set_sp(1, start_0_pos)

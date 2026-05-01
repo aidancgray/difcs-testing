@@ -76,7 +76,7 @@ with ui.layout_columns(col_widths=[ 10, 2],):
             
             l_ids_x, = ax1.plot(t, ids_x, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='orange', label='IDS X')
             l_ids_y, = ax1.plot(t, ids_y, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green', label='IDS Y')
-            l_ids_z, = ax1.plot(t, ids_z, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='green', label='IDS Z')
+            l_ids_z, = ax1.plot(t, ids_z, marker=marker_fmt, markersize=ms_fmt, linewidth=lw_fmt, color='purple', label='IDS Z')
             ax1.legend(loc='upper right')
             
             return fig
