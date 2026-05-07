@@ -12,10 +12,10 @@ import math
 
 
 #####################################################################
-RADIUS = sys.argv[1] if len(sys.argv) > 1 else 50
-LOOPS = sys.argv[2] if len(sys.argv) > 2 else 1
+RADIUS = sys.argv[1] if len(sys.argv) > 1 else 50 # um
+SPEED  = sys.argv[2] if len(sys.argv) > 2 else 2   # deg/s
+LOOPS  = sys.argv[3] if len(sys.argv) > 3 else 1   
 D_RADIUS = .05  # um
-SPEED = 2 # deg/s
 
 STEP_RAD = 2 * math.acos(1-D_RADIUS/float(RADIUS))
 STEP_SIZE = math.trunc(math.degrees(STEP_RAD))
