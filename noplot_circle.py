@@ -22,7 +22,7 @@ STEP_SIZE = math.trunc(math.degrees(STEP_RAD))
 while (0 != (360 % STEP_SIZE)) and (1 < STEP_SIZE):
     STEP_SIZE-=1
 
-TIMER = STEP_SIZE / SPEED
+TIMER = STEP_SIZE / float(SPEED)
 SETPOINT_LIST = []
 
 print(f"TIMER={TIMER}")
