@@ -40,7 +40,7 @@ class MagSensor():
 
     def serial_connect(self):
         ser_mag = serial.Serial(port=self.serial_id, 
-                                baudrate=128000, 
+                                baudrate=115200, 
                                 timeout=3, 
                                 bytesize=EIGHTBITS,
                                 parity=PARITY_NONE,
